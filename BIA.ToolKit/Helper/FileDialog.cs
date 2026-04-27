@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Helper
+namespace BIA.ToolKit.Helper
 {
     using Microsoft.Win32;
     using System.Collections.Generic;
@@ -16,13 +16,13 @@
                 openFileDlg.InitialDirectory = defaultFolder;
             }
 
-            if(!string.IsNullOrWhiteSpace(dialogDescription))
+            if (!string.IsNullOrWhiteSpace(dialogDescription))
             {
                 openFileDlg.Description = dialogDescription;
                 openFileDlg.UseDescriptionForTitle = true;
             }
 
-            var result = openFileDlg.ShowDialog();
+            System.Windows.Forms.DialogResult result = openFileDlg.ShowDialog();
             if (result == System.Windows.Forms.DialogResult.OK)
             {
                 return openFileDlg.SelectedPath;
@@ -45,7 +45,7 @@
                 openFileDlg.RestoreDirectory = true;
             }
 
-            var result = openFileDlg.ShowDialog();
+            bool? result = openFileDlg.ShowDialog();
             if (result == true)
             {
                 return openFileDlg.FileName;
@@ -61,9 +61,9 @@
             string[] files = System.IO.Directory.GetFiles(path);
             if (files.Length != 0) return false;
 
-            List<string> dirs = System.IO.Directory.GetDirectories(path).ToList();
+            List<string> dirs = [.. System.IO.Directory.GetDirectories(path)];
 
-            if (dirs.Where(d => !d.EndsWith("\\.git")).Count() != 0) return false;
+            if (dirs.Where(d => !d.EndsWith("\\.git")).Any()) return false;
 
             return true;
 

@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
+namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
 {
     using System;
     using System.Collections.Generic;
@@ -15,6 +15,7 @@
             modelProviders.Add(new FileGeneratorModelProvider_5_0_0(consoleWriter));
             modelProviders.Add(new FileGeneratorModelProvider_6_0_0(consoleWriter));
             modelProviders.Add(new FileGeneratorModelProvider_7_0_0(consoleWriter));
+            modelProviders.Add(new FileGeneratorModelProvider_8_0_0(consoleWriter));
         }
 
         public IFileGeneratorModelProvider GetModelProvider(Version version)

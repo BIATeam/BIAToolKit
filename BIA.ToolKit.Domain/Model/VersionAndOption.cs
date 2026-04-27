@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.Model
+namespace BIA.ToolKit.Domain.Model
 {
     using BIA.ToolKit.Domain.Work;
     using Microsoft.CodeAnalysis;
@@ -8,10 +8,10 @@
     {
         public VersionAndOption()
         {
-            WorkCompanyFiles = new ObservableCollection<WorkRepository>();
-            WorkTemplates = new ObservableCollection<WorkRepository>();
-            Profiles = new ObservableCollection<string>();
-            Options = new ObservableCollection<CFOption>();
+            WorkCompanyFiles = [];
+            WorkTemplates = [];
+            Profiles = [];
+            Options = [];
         }
         public bool? Test { get; set; }
 
@@ -31,5 +31,25 @@
         public WorkRepository WorkCompanyFile { get; set; }
         // Profile selected
         public string Profile { get; set; }
+
+        /// <summary>
+        /// Indicates whether the default team should be created for the entity.
+        /// </summary>
+        public bool HasDefaultTeam { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default team name.
+        /// </summary>
+        public string DefaultTeamName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default team name plural.
+        /// </summary>
+        public string DefaultTeamNamePlural { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default team domain name.
+        /// </summary>
+        public string DefaultTeamDomainName { get; set; }
     }
 }

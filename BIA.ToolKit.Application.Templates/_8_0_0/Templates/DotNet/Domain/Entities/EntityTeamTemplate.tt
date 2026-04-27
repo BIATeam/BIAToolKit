@@ -1,0 +1,34 @@
+<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_8_0_0)\TemplateTeam.ttinclude" #>
+<#@ output extension=".cs" #>
+// <copyright file="<#= ModelInstance.EntityName #>.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities
+{
+    using Audit.EntityFramework;
+    using BIA.Net.Core.Common.Attributes;
+    using BIA.Net.Core.Common.Enum;
+    using BIA.Net.Core.Domain.User.Entities;
+
+    /// <summary>
+    /// The <#= ModelInstance.EntityName.ToLiteral() #> entity.
+    /// </summary>
+    public class <#= ModelInstance.EntityName #> : BaseEntityTeam
+    {
+        /// <summary>
+        /// Add row version timestamp in table <#= ModelInstance.EntityName #>.
+        /// </summary>
+        [BiaRowVersionProperty(DbProvider.SqlServer)]
+        [AuditIgnore]
+        public byte[] RowVersion<#= ModelInstance.EntityName #> { get; set; }
+
+        /// <summary>
+        /// Add row version for Postgre in table <#= ModelInstance.EntityName #>.
+        /// </summary>
+        [BiaRowVersionProperty(DbProvider.PostGreSql)]
+        [AuditIgnore]
+        public uint RowVersionXmin<#= ModelInstance.EntityName #> { get; set; }
+    }
+}

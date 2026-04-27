@@ -1,227 +1,68 @@
-﻿namespace BIA.ToolKit.UserControls
+namespace BIA.ToolKit.UserControls
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.IO;
-    using System.Linq;
-    using System.Threading.Tasks;
+    using System.Windows;
     using System.Windows.Controls;
-    using BIA.ToolKit.Application.Helper;
-    using BIA.ToolKit.Application.Mapper;
-    using BIA.ToolKit.Application.Services;
-    using BIA.ToolKit.Application.ViewModel;
-    using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain;
-    using BIA.ToolKit.Domain.Model;
-    using BIA.ToolKit.Domain.Settings;
-    using BIA.ToolKit.Domain.Work;
+    using BIA.ToolKit.ViewModels;
 
     /// <summary>
-    /// Interaction logic for VersionAndOptionView.xaml
+    /// Interaction logic for VersionAndOptionUserControl.xaml
+    /// DataContext (VersionAndOptionViewModel) is set by the parent control.
+    /// Code-behind contains NO business logic — interact with the VM directly.
     /// </summary>
     public partial class VersionAndOptionUserControl : UserControl
     {
-        GitService gitService;
-        RepositoryService repositoryService;
-        private SettingsService settingsService;
-        private string currentProjectPath;
-        private UIEventBroker uiEventBroker;
-        private IConsoleWriter consoleWriter;
-        private List<FeatureSetting> OriginFeatureSettings;
-        public VersionAndOptionViewModel vm;
+        public VersionAndOptionViewModel ViewModel => DataContext as VersionAndOptionViewModel;
+
+        /// <summary>
+        /// DependencyProperty exposant la validite de la configuration des features au parent (binding XAML).
+        /// </summary>
+        public static readonly DependencyProperty IsFeatureConfigValidProperty =
+            DependencyProperty.Register(
+                nameof(IsFeatureConfigValid),
+                typeof(bool),
+                typeof(VersionAndOptionUserControl),
+                new PropertyMetadata(true));
+
+        public bool IsFeatureConfigValid
+        {
+            get => (bool)GetValue(IsFeatureConfigValidProperty);
+            private set => SetValue(IsFeatureConfigValidProperty, value);
+        }
+
+        /// <summary>
+        /// Quand true, force l'affichage du mode Advanced (options detaillees)
+        /// et masque le toggle "More / Less options". Utilise par l'ecran Migration
+        /// qui n'a pas besoin du mode cartes.
+        /// </summary>
+        public static readonly DependencyProperty ForceAdvancedProperty =
+            DependencyProperty.Register(
+                nameof(ForceAdvanced),
+                typeof(bool),
+                typeof(VersionAndOptionUserControl),
+                new PropertyMetadata(false));
+
+        public bool ForceAdvanced
+        {
+            get => (bool)GetValue(ForceAdvancedProperty);
+            set => SetValue(ForceAdvancedProperty, value);
+        }
 
         public VersionAndOptionUserControl()
         {
             InitializeComponent();
-            vm = (VersionAndOptionViewModel)base.DataContext;
-        }
 
-        public void Inject(RepositoryService repositoryService, GitService gitService, IConsoleWriter consoleWriter, SettingsService settingsService, UIEventBroker uiEventBroker)
-        {
-            this.gitService = gitService;
-            this.repositoryService = repositoryService;
-            this.settingsService = settingsService;
-            this.uiEventBroker = uiEventBroker;
-            this.consoleWriter = consoleWriter;
-            vm.Inject(repositoryService, consoleWriter, uiEventBroker);
-
-            uiEventBroker.OnSettingsUpdated += UiEventBroker_OnSettingsUpdated;
-            uiEventBroker.OnRepositoryViewModelReleaseDataUpdated += UiEventBroker_OnRepositoryViewModelReleaseDataUpdated;
-        }
-
-        private void UiEventBroker_OnRepositoryViewModelReleaseDataUpdated(RepositoryViewModel repository)
-        {
-            RefreshConfiguration();
-        }
-
-        private void UiEventBroker_OnSettingsUpdated(IBIATKSettings settings)
-        {
-            RefreshConfiguration();
-            vm.SettingsUseCompanyFiles = settings.UseCompanyFiles;
-        }
-
-        public void SelectVersion(string version)
-        {
-            vm.WorkTemplate = vm.WorkTemplates.FirstOrDefault(workTemplate => workTemplate.Version == $"V{version}");
-        }
-
-        public void SetCurrentProjectPath(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion, IEnumerable<FeatureSetting> originFeatureSettings = null)
-        {
-            this.currentProjectPath = path;
-            this.LoadfeatureSetting();
-
-            if (originFeatureSettings != null)
+            // Synchroniser la DependencyProperty IsFeatureConfigValid avec le ViewModel
+            DataContextChanged += (s, e) =>
             {
-                uiEventBroker.OnOriginFeatureSettingsChanged -= UiEventBroker_OnOriginFeatureSettingsChanged;
-                uiEventBroker.OnOriginFeatureSettingsChanged += UiEventBroker_OnOriginFeatureSettingsChanged;
-                OriginFeatureSettings = new List<FeatureSetting>(originFeatureSettings);
-            }
-
-            this.LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
-        }
-
-        private void UiEventBroker_OnOriginFeatureSettingsChanged(List<FeatureSetting> featureSettings)
-        {
-            OriginFeatureSettings = featureSettings;
-            LoadVersionAndOption(false, false);
-        }
-
-        public void LoadVersionAndOption(bool mapCompanyFileVersion, bool mapFrameworkVersion)
-        {
-            if (string.IsNullOrWhiteSpace(this.currentProjectPath))
-                return;
-
-            string projectGenerationFile = Path.Combine(this.currentProjectPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
-            if (!File.Exists(projectGenerationFile))
-                return;
-
-            try
-            {
-                VersionAndOptionDto versionAndOptionDto = CommonTools.DeserializeJsonFile<VersionAndOptionDto>(projectGenerationFile);
-                VersionAndOptionMapper.DtoToModel(versionAndOptionDto, vm, mapCompanyFileVersion, mapFrameworkVersion, OriginFeatureSettings);
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"Error when reading {projectGenerationFile} : {ex.Message}", "red");
-            }
-        }
-
-        private void LoadfeatureSetting()
-        {
-            List<FeatureSetting> featureSettings = FeatureSettingHelper.Get(vm.WorkTemplate?.VersionFolderPath);
-            List<FeatureSetting> projectFeatureSettings = FeatureSettingHelper.Get(this.currentProjectPath);
-
-            if (featureSettings?.Any() == true && projectFeatureSettings?.Any() == true)
-            {
-                foreach (FeatureSetting featureSetting in featureSettings)
+                if (e.NewValue is VersionAndOptionViewModel vm)
                 {
-                    FeatureSetting projectFeatureSetting = projectFeatureSettings.Find(x => x.Id == featureSetting.Id);
-
-                    if (projectFeatureSetting != null)
+                    vm.PropertyChanged += (_, args) =>
                     {
-                        featureSetting.IsSelected = projectFeatureSetting.IsSelected;
-                    }
+                        if (args.PropertyName == nameof(VersionAndOptionViewModel.IsDefaultTeamSetupValid))
+                            IsFeatureConfigValid = vm.IsDefaultTeamSetupValid;
+                    };
                 }
-            }
-
-            featureSettings = featureSettings ?? [];
-            var featureSettingViewModels = new ObservableCollection<FeatureSettingViewModel>(featureSettings.Select(x => new FeatureSettingViewModel(x)));
-            foreach (var featureSettingViewModel in featureSettingViewModels)
-            {
-                if (featureSettingViewModel.FeatureSetting.DisabledFeatures.Count != 0)
-                {
-                    featureSettingViewModel.DisabledFeatures = string.Join(", ", featureSettings
-                        .Where(x => featureSettingViewModel.FeatureSetting.DisabledFeatures.Contains(x.Id))
-                        .Select(x => x.DisplayName));
-                }
-            }
-
-            vm.FeatureSettings = featureSettingViewModels;
-        }
-
-        public async Task FillVersionFolderPathAsync()
-        {
-            if (vm?.WorkTemplate?.Repository != null)
-            {
-                if (vm.WorkTemplate.Version == "VX.Y.Z")
-                {
-                    vm.WorkTemplate.VersionFolderPath = vm.WorkTemplate.Repository.LocalPath;
-                }
-                else
-                {
-                    vm.WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(vm.WorkTemplate.Repository, vm.WorkTemplate.Version);
-                }
-            }
-        }
-
-        private void RefreshConfiguration()
-        {
-            var listCompanyFiles = new List<WorkRepository>();
-            var listWorkTemplates = new List<WorkRepository>();
-
-            foreach (var repository in settingsService.Settings.TemplateRepositories.Where(r => r.UseRepository))
-            {
-                AddTemplatesVersion(listWorkTemplates, repository);
-            }
-
-            var hasVersionXYZ = false;
-            var repositoryVersionXYZ = settingsService.Settings.TemplateRepositories.FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
-            if (repositoryVersionXYZ is not null)
-            {
-                listWorkTemplates.Add(new WorkRepository(repositoryVersionXYZ, "VX.Y.Z"));
-                hasVersionXYZ = true;
-            }
-
-            vm.WorkTemplates = new ObservableCollection<WorkRepository>(listWorkTemplates);
-            if (listWorkTemplates.Count >= 1)
-            {
-                vm.WorkTemplate = hasVersionXYZ && listWorkTemplates.Count >= 2 ? listWorkTemplates[^2] : listWorkTemplates[^1];
-            }
-
-            vm.SettingsUseCompanyFiles = settingsService.Settings.UseCompanyFiles;
-            vm.UseCompanyFiles = settingsService.Settings.UseCompanyFiles;
-            if (settingsService.Settings.UseCompanyFiles)
-            {
-                foreach (var repository in settingsService.Settings.CompanyFilesRepositories.Where(r => r.UseRepository))
-                {
-                    AddTemplatesVersion(listCompanyFiles, repository);
-                }
-                vm.WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
-                if (vm.WorkCompanyFiles.Count >= 1 && vm.WorkTemplate is not null)
-                {
-                    vm.WorkCompanyFile = vm.GetWorkCompanyFile(vm.WorkTemplate.Version);
-                }
-            }
-        }
-
-        private void AddTemplatesVersion(List<WorkRepository> WorkTemplates, IRepository repository)
-        {
-            foreach (var release in repository.Releases)
-            {
-                WorkTemplates.Add(new WorkRepository(repository, release.Name));
-            }
-
-            WorkTemplates.Sort(new WorkRepository.VersionComparer());
-        }
-
-        private void FrameworkVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            uiEventBroker.RequestExecuteActionWithWaiter(async () =>
-            {
-                await this.FillVersionFolderPathAsync();
-                this.LoadfeatureSetting();
-                this.LoadVersionAndOption(false, false);
-                if (OriginFeatureSettings is null)
-                {
-                    uiEventBroker.NotifyOriginFeatureSettingsChanged(vm.FeatureSettings.Select(x => x.FeatureSetting).ToList());
-                }
-            });
-        }
-
-        private void CFVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            this.LoadVersionAndOption(false, false);
+            };
         }
     }
 }

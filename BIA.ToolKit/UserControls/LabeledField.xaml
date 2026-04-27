@@ -14,7 +14,7 @@
 
         <Label Content="{Binding Label, ElementName=Root}"
                ContentStringFormat="{}{0}:"
-               Foreground="White" FontWeight="Bold"/>
+               FontWeight="Bold"/>
 
         <ContentPresenter Grid.Row="1"
                           Content="{Binding FieldContent, ElementName=Root}"

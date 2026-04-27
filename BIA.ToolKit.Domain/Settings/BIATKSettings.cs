@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.Settings
+namespace BIA.ToolKit.Domain.Settings
 {
     using System;
     using System.Collections.Generic;
@@ -20,6 +20,7 @@
         public string ModifyProjectRootProjectsPath { get; set; }
         public string CreateCompanyName { get; set; }
         public bool AutoUpdate { get; set; }
+        public bool IsDarkTheme { get; set; } = true;
         public RepositoryUserConfig ToolkitRepositoryConfig { get; set; }
         public List<RepositoryUserConfig> TemplateRepositoriesConfig { get; set; }
         public List<RepositoryUserConfig> CompanyFilesRepositoriesConfig { get; set; }
@@ -27,8 +28,8 @@
         public void InitRepositoriesInterfaces()
         {
             ToolkitRepository = ToolkitRepositoryConfig.ToRepository();
-            TemplateRepositories = TemplateRepositoriesConfig.Select(x => x.ToRepository()).ToList();
-            CompanyFilesRepositories = CompanyFilesRepositoriesConfig.Select(x => x.ToRepository()).ToList();
+            TemplateRepositories = [.. TemplateRepositoriesConfig.Select(x => x.ToRepository())];
+            CompanyFilesRepositories = [.. CompanyFilesRepositoriesConfig.Select(x => x.ToRepository())];
         }
     }
 }

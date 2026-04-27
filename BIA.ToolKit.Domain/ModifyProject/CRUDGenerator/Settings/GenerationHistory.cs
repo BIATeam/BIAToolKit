@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings
+namespace BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings
 {
     using System;
     using System.Collections.Generic;
@@ -8,11 +8,12 @@
         public DateTime Date { get; set; }
         public string EntityNameSingular { get; set; }
         public string EntityNamePlural { get; set; }
+        public string FrameworkVersion { get; set; }
         public List<Generation> Generation { get; }
 
         protected GenerationHistory()
         {
-            Generation = new();
+            Generation = [];
         }
     }
 

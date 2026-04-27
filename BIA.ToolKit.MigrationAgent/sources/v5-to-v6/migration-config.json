@@ -1,0 +1,9 @@
+{
+  "sourceVersion": "5.0.0",
+  "targetVersion": "6.0.0",
+  "templateCompanyName": "TheBIADevCompany",
+  "templateProjectName": "BIADemo",
+  "templateAngularFronts": ["Angular"],
+  "patchFile": "migration.patch",
+  "generatedDate": "TODO: date de generation du patch"
+}

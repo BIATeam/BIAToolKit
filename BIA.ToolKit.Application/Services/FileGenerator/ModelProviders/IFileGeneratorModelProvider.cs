@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
+namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
 {
     using System;
     using System.Collections.Generic;
@@ -11,5 +11,6 @@
         object GetDtoTemplateModel(FileGeneratorDtoContext dtoContext);
         object GetOptionTemplateModel(FileGeneratorOptionContext optionContext);
         object GetCrudTemplateModel(FileGeneratorCrudContext crudContext);
+        object GetTeamTemplateModel(FileGeneratorTeamContext teamContext);
     }
 }

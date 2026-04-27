@@ -1,0 +1,28 @@
+<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_8_0_0)\TemplateCrud.ttinclude" #>
+<#@ output extension=".cs" #>
+// <copyright file="I<#= ModelInstance.EntityName #>AppService.cs" company="<#= ModelInstance.CompanyName #>">
+// Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
+// </copyright>
+
+namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Application.<#= ModelInstance.DomainName #>
+{
+    using BIA.Net.Core.Application.Services;
+    using BIA.Net.Core.Domain.Dto.Base;
+<#  if(ModelInstance.IsTeam) { #>
+    using BIA.Net.Core.Domain.Dto.User;
+<#  } #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.Dto.<#= ModelInstance.DomainName #>;
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+
+    /// <summary>
+    /// The interface defining the application service for <#= ModelInstance.EntityName.ToCamelCase() #>.
+    /// </summary>
+<#  if (ModelInstance.HasListAndItemModels) { #>
+    public interface I<#= ModelInstance.EntityName #>AppService : ICrudAppServiceListAndItemBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>ListDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #>>
+<#  } else { #>
+    public interface I<#= ModelInstance.EntityName #>AppService : ICrudAppServiceBase<<#= ModelInstance.EntityName #>Dto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, PagingFilterFormatDto<# if(ModelInstance.IsTeam) {  #><TeamAdvancedFilterDto><# } #>>
+<#  } #>
+    {
+    }
+}

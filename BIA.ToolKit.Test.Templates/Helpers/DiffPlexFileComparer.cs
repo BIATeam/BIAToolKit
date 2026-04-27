@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,8 +33,8 @@ namespace BIA.ToolKit.Test.Templates.Helpers
         /// </summary>
         public static FileDiffResult CompareFiles(string referencePath, string generatedPath)
         {
-            var oldText = File.ReadAllText(referencePath);
-            var newText = File.ReadAllText(generatedPath);
+            string oldText = File.ReadAllText(referencePath);
+            string newText = File.ReadAllText(generatedPath);
 
             // Fast path: exact same content.
             if (string.Equals(oldText, newText, StringComparison.Ordinal))
@@ -44,7 +44,7 @@ namespace BIA.ToolKit.Test.Templates.Helpers
 
             var differ = new Differ();
             var builder = new SideBySideDiffBuilder(differ);
-            var model = builder.BuildDiffModel(oldText, newText);
+            SideBySideDiffModel model = builder.BuildDiffModel(oldText, newText);
 
             int modified = 0;
 
@@ -52,20 +52,20 @@ namespace BIA.ToolKit.Test.Templates.Helpers
             var addedTexts = new Dictionary<string, int>(StringComparer.Ordinal);
             var deletedTexts = new Dictionary<string, int>(StringComparer.Ordinal);
 
-            var oldLines = model.OldText.Lines;
-            var newLines = model.NewText.Lines;
+            List<DiffPiece> oldLines = model.OldText.Lines;
+            List<DiffPiece> newLines = model.NewText.Lines;
             int lineCount = Math.Max(oldLines.Count, newLines.Count);
 
             for (int i = 0; i < lineCount; i++)
             {
-                var oldLine = i < oldLines.Count ? oldLines[i] : new DiffPiece(string.Empty, ChangeType.Imaginary, 0);
-                var newLine = i < newLines.Count ? newLines[i] : new DiffPiece(string.Empty, ChangeType.Imaginary, 0);
+                DiffPiece oldLine = i < oldLines.Count ? oldLines[i] : new DiffPiece(string.Empty, ChangeType.Imaginary, 0);
+                DiffPiece newLine = i < newLines.Count ? newLines[i] : new DiffPiece(string.Empty, ChangeType.Imaginary, 0);
 
                 bool hasOld = oldLine.Type != ChangeType.Imaginary;
                 bool hasNew = newLine.Type != ChangeType.Imaginary;
 
-                var oldTextLine = hasOld ? oldLine.Text ?? string.Empty : null;
-                var newTextLine = hasNew ? newLine.Text ?? string.Empty : null;
+                string oldTextLine = hasOld ? oldLine.Text ?? string.Empty : null;
+                string newTextLine = hasNew ? newLine.Text ?? string.Empty : null;
 
                 if (hasOld && hasNew)
                 {
@@ -102,12 +102,12 @@ namespace BIA.ToolKit.Test.Templates.Helpers
             // Convert matching (Deleted + Added) pairs with same text into "Moved".
             int moved = 0;
 
-            foreach (var kvp in deletedTexts)
+            foreach (KeyValuePair<string, int> kvp in deletedTexts)
             {
-                var text = kvp.Key;
-                var deletedCount = kvp.Value;
+                string text = kvp.Key;
+                int deletedCount = kvp.Value;
 
-                if (addedTexts.TryGetValue(text, out var addedCount) && addedCount > 0)
+                if (addedTexts.TryGetValue(text, out int addedCount) && addedCount > 0)
                 {
                     int match = Math.Min(deletedCount, addedCount);
                     if (match > 0)
@@ -131,7 +131,7 @@ namespace BIA.ToolKit.Test.Templates.Helpers
         {
             key ??= string.Empty;
 
-            if (map.TryGetValue(key, out var count))
+            if (map.TryGetValue(key, out int count))
             {
                 map[key] = count + 1;
             }

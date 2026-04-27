@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
+namespace BIA.ToolKit.Application.Services.FileGenerator.ModelProviders
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -7,12 +7,13 @@
     using BIA.ToolKit.Application.Templates.Common.Interfaces;
     using BIA.ToolKit.Common;
 
-    internal abstract class FileGeneratorModelProviderBase<TEntityDtoModel, TEntityCrudModel, TEntityOptionModel, TPropertyDtoModel, TPropertyCrudModel>(IConsoleWriter consoleWriter) : IFileGeneratorModelProvider
+    internal abstract class FileGeneratorModelProviderBase<TEntityDtoModel, TEntityCrudModel, TEntityOptionModel, TEntityTeamModel, TPropertyDtoModel, TPropertyCrudModel>(IConsoleWriter consoleWriter) : IFileGeneratorModelProvider
         where TPropertyDtoModel : class, IPropertyDtoModel, new()
         where TEntityDtoModel : class, IEntityDtoModel<TPropertyDtoModel>, new()
         where TPropertyCrudModel : class, IPropertyCrudModel, new()
         where TEntityCrudModel : class, IEntityCrudModel<TPropertyCrudModel>, new()
         where TEntityOptionModel : class, IEntityOptionModel, new()
+        where TEntityTeamModel : class, IEntityTeamModel, new()
     {
         protected readonly IConsoleWriter consoleWriter = consoleWriter;
 
@@ -24,9 +25,11 @@
 
         protected static TEntityOptionModel CreateOptionTemplateModel() => new();
 
+        protected static TEntityTeamModel CreateTeamTemplateModel() => new();
+
         public virtual object GetCrudTemplateModel(FileGeneratorCrudContext crudContext)
         {
-            var model = CreateCrudTemplateModel();
+            TEntityCrudModel model = CreateCrudTemplateModel();
 
             model.CompanyName = crudContext.CompanyName;
             model.ProjectName = crudContext.ProjectName;
@@ -67,26 +70,26 @@
             model.UseDomainUrl = crudContext.UseDomainUrl;
             model.HasListAndItemModels = crudContext.HasListAndItemModels;
 
-            model.Properties = crudContext.Properties.Select(x => new TPropertyCrudModel
+            model.Properties = [.. crudContext.Properties.Select(x => new TPropertyCrudModel
             {
                 Name = x.Name,
                 Type = x.Type,
                 BiaFieldAttributes = x.Annotations
-            }).ToList();
+            })];
 
-            model.ListProperties = crudContext.ListProperties.Select(x => new TPropertyCrudModel
+            model.ListProperties = [.. crudContext.ListProperties.Select(x => new TPropertyCrudModel
             {
                 Name = x.Name,
                 Type = x.Type,
                 BiaFieldAttributes = x.Annotations
-            }).ToList();
+            })];
 
             return model;
         }
 
         public virtual object GetDtoTemplateModel(FileGeneratorDtoContext dtoContext)
         {
-            var model = CreateDtoTemplateModel();
+            TEntityDtoModel model = CreateDtoTemplateModel();
 
             model.CompanyName = dtoContext.CompanyName;
             model.ProjectName = dtoContext.ProjectName;
@@ -95,7 +98,7 @@
             model.EntityName = dtoContext.EntityName;
             model.BaseKeyType = dtoContext.BaseKeyType;
             model.AncestorTeam = dtoContext.AncestorTeamName;
-            model.Properties = dtoContext.Properties.Select(x => new TPropertyDtoModel()
+            model.Properties = [.. dtoContext.Properties.Select(x => new TPropertyDtoModel()
             {
                 MappingName = x.MappingName,
                 EntityCompositeName = x.EntityCompositeName,
@@ -115,14 +118,15 @@
                 OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
                 IsParent = x.IsParent,
                 AsLocalDateTime = x.AsLocalDateTime
-            }).ToList();
+            })];
             model.IsTeamType = dtoContext.IsTeam;
             model.IsArchivable = dtoContext.IsArchivable;
             model.IsFixable = dtoContext.IsFixable;
             model.IsVersioned = dtoContext.IsVersioned;
             model.HasAudit = dtoContext.HasAudit;
             model.HasListAndItemModels = dtoContext.HasListAndItemModels;
-            model.ListProperties = dtoContext.ListProperties.Select(x => new TPropertyDtoModel()
+            model.TeamRoleId = dtoContext.TeamRoleId;
+            model.ListProperties = [.. dtoContext.ListProperties.Select(x => new TPropertyDtoModel()
             {
                 MappingName = x.MappingName,
                 EntityCompositeName = x.EntityCompositeName,
@@ -142,7 +146,7 @@
                 OptionRelationSecondIdProperty = x.OptionRelationSecondIdProperty,
                 IsParent = x.IsParent,
                 AsLocalDateTime = x.AsLocalDateTime
-            }).ToList();
+            })];
 
             if (string.IsNullOrWhiteSpace(model.BaseKeyType))
             {
@@ -155,7 +159,7 @@
 
         public virtual object GetOptionTemplateModel(FileGeneratorOptionContext optionContext)
         {
-            var model = CreateOptionTemplateModel();
+            TEntityOptionModel model = CreateOptionTemplateModel();
 
             model.CompanyName = optionContext.CompanyName;
             model.ProjectName = optionContext.ProjectName;
@@ -172,6 +176,27 @@
             model.DomainName = optionContext.DomainName;
             model.OptionDisplayName = optionContext.DisplayName;
             model.UseHubForClient = optionContext.UseHubForClient;
+
+            return model;
+        }
+
+        public virtual object GetTeamTemplateModel(FileGeneratorTeamContext teamContext)
+        {
+            TEntityTeamModel model = CreateTeamTemplateModel();
+            model.CompanyName = teamContext.CompanyName;
+            model.ProjectName = teamContext.ProjectName;
+            model.EntityNameArticle = Common.ComputeNameArticle(teamContext.EntityName);
+            model.EntityName = teamContext.EntityName;
+            model.EntityNamePlural = teamContext.EntityNamePlural;
+            model.BaseKeyType = teamContext.BaseKeyType;
+            if (string.IsNullOrWhiteSpace(model.BaseKeyType))
+            {
+                consoleWriter.AddMessageLine($"WARNING: Unable to retrieve entity's base key type, you'll must replace the template '{Common.TemplateValue_BaseKeyType}' by corresponding type value after generation.", "orange");
+                model.BaseKeyType = Common.TemplateValue_BaseKeyType;
+            }
+
+            model.DomainName = teamContext.DomainName;
+            model.IsTeamType = true;
 
             return model;
         }

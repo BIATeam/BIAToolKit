@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates
+namespace BIA.ToolKit.Application.Templates
 {
     using System;
     using System.Collections.Generic;
@@ -14,7 +14,8 @@
             {
                 Dto,
                 Option,
-                Crud
+                Crud,
+                Team
             }
 
             public class Template : IEquatable<Template>
@@ -25,26 +26,29 @@
                 public string PartialInsertionMarkup { get; set; }
                 public bool UseDomainPartialInsertionMarkup { get; set; }
                 public List<string> IgnoredInnerMarkups { get; set; } = [];
+                public bool HasNoPartialInsertionMarkupSuffix { get; set; }
 
                 public bool Equals(Template other)
                 {
-                    return 
-                        InputPath == other.InputPath 
-                        && OutputPath == other.OutputPath 
+                    return
+                        InputPath == other.InputPath
+                        && OutputPath == other.OutputPath
                         && IsPartial == other.IsPartial
                         && other.PartialInsertionMarkup == PartialInsertionMarkup
-                        && IgnoredInnerMarkups.Count == other.IgnoredInnerMarkups.Count 
+                        && UseDomainPartialInsertionMarkup == other.UseDomainPartialInsertionMarkup
+                        && HasNoPartialInsertionMarkupSuffix == other.HasNoPartialInsertionMarkupSuffix
+                        && IgnoredInnerMarkups.Count == other.IgnoredInnerMarkups.Count
                         && IgnoredInnerMarkups.All(other.IgnoredInnerMarkups.Contains);
                 }
             }
 
             [JsonConverter(typeof(StringEnumConverter))]
             public FeatureType Type { get; set; }
-            public List<Template> DotNetTemplates { get; set; } = new List<Template>();
-            public List<Template> AngularTemplates { get; set; } = new List<Template>();
+            public List<Template> DotNetTemplates { get; set; } = [];
+            public List<Template> AngularTemplates { get; set; } = [];
         }
 
         public Version Version { get; set; }
-        public List<Feature> Features { get; set; } = new List<Feature>();
+        public List<Feature> Features { get; set; } = [];
     }
 }

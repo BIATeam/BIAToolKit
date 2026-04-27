@@ -1,26 +1,38 @@
-﻿namespace BIA.ToolKit.Test.Templates
+namespace BIA.ToolKit.Test.Templates
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO.Compression;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Test.Templates.Assertions;
+    using Xunit.Sdk;
     using static BIA.ToolKit.Application.Templates.Manifest;
 
-    public abstract class GenerateTestFixture() : IDisposable
+    public abstract class GenerateTestFixture(IMessageSink diagnosticMessageSink) : IDisposable
     {
-        internal class ConsoleWriterTest(Stopwatch stopwatch, string fixtureName) : IConsoleWriter
+        private sealed class DiagnosticMessage(string message) : IDiagnosticMessage
+        {
+            public string Message => message;
+            public string ToJson() => $"{{\"$type\":\"diagnostic\",\"Message\":{System.Text.Json.JsonSerializer.Serialize(message)}}}";
+        }
+
+        internal class ConsoleWriterTest(IMessageSink messageSink, Stopwatch stopwatch, string fixtureName) : IConsoleWriter
         {
             public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
             {
-                Console.WriteLine($"[{fixtureName} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}");
+                messageSink.OnMessage(new DiagnosticMessage($"[{fixtureName} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}"));
             }
+
+            public void Clear() { }
+            public void CopyToClipboard() { }
         }
 
         public FileGeneratorService FileGeneratorService { get; private set; }
@@ -36,18 +48,18 @@
 
         protected void Init(string biaDemoArchiveName, Project biaDemoProject)
         {
-            consoleWriter = new ConsoleWriterTest(stopwatch, this.GetType().Name);
+            consoleWriter = new ConsoleWriterTest(diagnosticMessageSink, stopwatch, GetType().Name);
             stopwatch.Start();
 
-            var biaDemoZipPath = $"..\\..\\..\\..\\BIADemoVersions\\{biaDemoArchiveName}.zip";
-            var currentDir = Directory.GetCurrentDirectory();
+            string biaDemoZipPath = $"..\\..\\..\\..\\BIADemoVersions\\{biaDemoArchiveName}.zip";
+            string currentDir = Directory.GetCurrentDirectory();
             referenceProjectPath = NormalisePath(Path.Combine(currentDir, "..\\..\\..\\..\\BIADemoVersions\\", Path.GetFileNameWithoutExtension(biaDemoZipPath)));
             testProjectPath = Path.Combine(Path.GetTempPath(), "BIAToolKitTestTemplatesGenerated", biaDemoProject.FrameworkVersion);
 
             consoleWriter.AddMessageLine($"Reference project at {referenceProjectPath}");
             consoleWriter.AddMessageLine($"Generation path at {testProjectPath}");
 
-            var doUnzip = !Directory.Exists(referenceProjectPath);
+            bool doUnzip = !Directory.Exists(referenceProjectPath);
             if (doUnzip)
             {
                 consoleWriter.AddMessageLine($"Unzipping {Path.GetFileName(biaDemoZipPath)}...");
@@ -82,12 +94,12 @@
 
             consoleWriter.AddMessageLine($"Init service...");
             FileGeneratorService = new FileGeneratorService(consoleWriter);
-            FileGeneratorService.Init(TestProject, true).Wait();
+            FileGeneratorService.Init(TestProject, cancellationToken: CancellationToken.None).Wait();
 
             if (referenceProject.BIAFronts.Count != 0)
             {
-                var referenceProjectAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
-                CreateUnitTestPrettierToolProject(referenceProjectAngularPath);
+                string referenceProjectAngularPath = Path.Combine(referenceProject.Folder, referenceProject.BIAFronts.First());
+                prettierAngularProjectPath = FileGeneratorService.CreateTemporaryPrettierToolProject(referenceProjectAngularPath, CancellationToken.None).Result;
                 FileGeneratorService.SetPrettierAngularProjectPath(prettierAngularProjectPath);
             }
 
@@ -97,7 +109,8 @@
         public void Dispose()
         {
             stopwatch.Stop();
-            CleanupTemporaryPrettierToolProject(prettierAngularProjectPath);
+            FileGeneratorService.CleanupTemporaryPrettierToolProject(prettierAngularProjectPath, new CancellationTokenSource(TimeSpan.FromSeconds(30)).Token).Wait();
+            GC.SuppressFinalize(this);
         }
 
         public async Task RunTestGenerateDtoAllFilesEqualsAsync(FileGeneratorDtoContext dtoContext, List<string> partialMarkupIdentifiersToIgnore = null)
@@ -134,83 +147,10 @@
                 });
         }
 
-        private void CreateUnitTestPrettierToolProject(string referenceProjectAngularPath)
-        {
-            prettierAngularProjectPath = Path.Combine(Path.GetTempPath(), $"BIAToolKit_Prettier_{Guid.NewGuid()}");
-
-            try
-            {
-                Directory.CreateDirectory(prettierAngularProjectPath);
-
-                var prettierrcSourcePath = Path.Combine(referenceProjectAngularPath, ".prettierrc");
-                if (!File.Exists(prettierrcSourcePath))
-                {
-                    throw new Exception($"Unable to find .prettierrc into {prettierrcSourcePath}");
-                }
-
-                File.Copy(prettierrcSourcePath, Path.Combine(prettierAngularProjectPath, ".prettierrc"));
-
-                var packageJson = @"{
-  ""name"": ""biatoolkit-prettier-temp"",
-  ""version"": ""1.0.0"",
-  ""private"": true,
-  ""dependencies"": {},
-  ""devDependencies"": {
-    ""prettier"": ""~3.8.1"",
-    ""prettier-plugin-organize-imports"": ""~4.3.0"",
-    ""typescript"": ""~5.9.3""
-  }
-}";
-                File.WriteAllText(Path.Combine(prettierAngularProjectPath, "package.json"), packageJson);
-
-                var npmInstallProcess = new Process();
-                npmInstallProcess.StartInfo.WorkingDirectory = prettierAngularProjectPath;
-                npmInstallProcess.StartInfo.FileName = "cmd.exe";
-                npmInstallProcess.StartInfo.Arguments = "/C npm install";
-                npmInstallProcess.StartInfo.UseShellExecute = false;
-                npmInstallProcess.StartInfo.CreateNoWindow = false;
-
-                consoleWriter.AddMessageLine($"Installing prettier packages in temporary project...");
-                npmInstallProcess.Start();
-                npmInstallProcess.WaitForExit(TimeSpan.FromSeconds(30));
-
-                if (npmInstallProcess.ExitCode != 0)
-                {
-                    throw new Exception($"npm install failed");
-                }
-
-                consoleWriter.AddMessageLine($"Prettier tool project ready at {prettierAngularProjectPath}");
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"Failed to create temporary prettier project: {ex.Message}");
-                CleanupTemporaryPrettierToolProject(prettierAngularProjectPath);
-                throw;
-            }
-        }
-
-        private void CleanupTemporaryPrettierToolProject(string prettierAngularProjectPath)
-        {
-            if (string.IsNullOrEmpty(prettierAngularProjectPath) || !Directory.Exists(prettierAngularProjectPath))
-            {
-                return;
-            }
-
-            try
-            {
-                Directory.Delete(prettierAngularProjectPath, true);
-                consoleWriter.AddMessageLine($"Cleaned up temporary prettier project");
-            }
-            catch (Exception ex)
-            {
-                consoleWriter.AddMessageLine($"Failed to cleanup temporary prettier project: {ex.Message}");
-            }
-        }
-
         private async Task RunTestGenerateAllFilesEqualsAsync<TContext>(
             TContext context,
             Feature.FeatureType featureType,
-            Func<TContext, Task> generateAsync,
+            Func<TContext, CancellationToken, Task> generateAsync,
             List<string> partialMarkupIdentifiersToIgnore = null,
             Action<TContext> preProcess = null)
             where TContext : FileGeneratorContext
@@ -223,13 +163,13 @@
             preProcess?.Invoke(context);
             ImportTargetedPartialFiles(context);
 
-            await generateAsync(context);
+            await generateAsync(context, CancellationToken.None);
             GenerationAssertions.AssertAllFilesEquals(this, context);
         }
 
         private void InitTestProjectFolder(Feature.FeatureType featureType, FileGeneratorContext context)
         {
-            var generationFolder = Path.Combine(testProjectPath, $"{featureType}_{context.EntityName}");
+            string generationFolder = Path.Combine(testProjectPath, $"{featureType}_{context.EntityName}");
             if (Directory.Exists(generationFolder))
             {
                 Directory.Delete(generationFolder, true);
@@ -242,9 +182,9 @@
         {
             if (context.GenerateBack)
             {
-                foreach (var template in CurrentTestFeature.DotNetTemplates.Where(t => t.IsPartial))
+                foreach (Feature.Template template in CurrentTestFeature.DotNetTemplates.Where(t => t.IsPartial))
                 {
-                    var (referencePath, generatedPath) = GetDotNetFilesPath(template.OutputPath, context);
+                    (string referencePath, string generatedPath) = GetDotNetFilesPath(template.OutputPath, context);
                     if (!File.Exists(referencePath))
                         continue;
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
@@ -254,9 +194,9 @@
 
             if (context.GenerateFront)
             {
-                foreach (var template in CurrentTestFeature.AngularTemplates.Where(t => t.IsPartial))
+                foreach (Feature.Template template in CurrentTestFeature.AngularTemplates.Where(t => t.IsPartial))
                 {
-                    var (referencePath, generatedPath) = GetAngularFilesPath(template.OutputPath, context);
+                    (string referencePath, string generatedPath) = GetAngularFilesPath(template.OutputPath, context);
                     if (!File.Exists(referencePath))
                         continue;
                     Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
@@ -277,16 +217,16 @@
 
         private static string NormalisePath(string path)
         {
-            var components = path.Split(new Char[] { '\\' });
+            string[] components = path.Split(['\\']);
 
             var retval = new Stack<string>();
-            foreach (var bit in components)
+            foreach (string bit in components)
             {
                 if (bit == "..")
                 {
-                    if (retval.Any())
+                    if (retval.Count > 0)
                     {
-                        var popped = retval.Pop();
+                        string popped = retval.Pop();
                         if (popped == "..")
                         {
                             retval.Push(popped);

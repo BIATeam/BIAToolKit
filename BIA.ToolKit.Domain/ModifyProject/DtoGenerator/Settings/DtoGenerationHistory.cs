@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings
+namespace BIA.ToolKit.Domain.ModifyProject.DtoGenerator.Settings
 {
     using System;
     using System.Collections.Generic;
@@ -8,23 +8,26 @@
 
     public class DtoGenerationHistory
     {
-        public List<DtoGeneration> Generations { get; set; } = new();
+        public List<DtoGeneration> Generations { get; set; } = [];
     }
 
     public class DtoGeneration
     {
         public DateTime DateTime { get; set; }
         public string EntityName { get; set; }
+        public string EntityNamePlural { get; set; }
+        public string FrameworkVersion { get; set; }
         public string EntityNamespace { get; set; }
         public string Domain { get; set; }
         public string AncestorTeam { get; set; }
         public bool IsTeam { get; set; }
+        public int TeamRoleId { get; set; }
         public bool IsVersioned { get; set; }
         public bool IsFixable { get; set; }
         public bool IsArchivable { get; set; }
         public string EntityBaseKeyType { get; set; }
         public bool UseDedicatedAudit { get; set; }
-        public List<DtoGenerationPropertyMapping> PropertyMappings { get; set; } = new();
+        public List<DtoGenerationPropertyMapping> PropertyMappings { get; set; } = [];
     }
 
     public class DtoGenerationPropertyMapping

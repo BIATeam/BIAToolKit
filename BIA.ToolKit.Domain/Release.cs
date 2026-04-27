@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain
+namespace BIA.ToolKit.Domain
 {
     using System;
     using System.Collections.Generic;
@@ -31,7 +31,7 @@
                 return;
 
             var dirInfo = new DirectoryInfo(LocalPath);
-            foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+            foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
             {
                 file.Attributes = FileAttributes.Normal;
                 File.Delete(file.FullName);

@@ -1,18 +1,21 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Extensions;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Parser;
     using BIA.ToolKit.Application.Settings;
     using BIA.ToolKit.Common;
-    using BIA.ToolKit.Domain.CRUDGenerator;
-    using BIA.ToolKit.Domain.DtoGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
+    using BIA.ToolKit.Domain.ModifyProject.DtoGenerator;
     using BIA.ToolKit.Domain.ProjectAnalysis;
+    using CommunityToolkit.Mvvm.Messaging;
     using Microsoft.Build.Locator;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.MSBuild;
+    using Microsoft.CodeAnalysis.Text;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -28,34 +31,34 @@ using Roslyn.Compilers.Common;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;*/
 
-    public class CSharpParserService
+    public class CSharpParserService(IConsoleWriter consoleWriter) : IDisposable
     {
-        private readonly List<string> excludedEntitiesFilesSuffixes = new() { "Mapper", "Service", "Repository", "Customizer", "Specification", "Dto" };
-        private readonly IConsoleWriter consoleWriter;
-        private readonly UIEventBroker eventBroker;
+        private readonly List<string> excludedEntitiesFilesSuffixes = ["Mapper", "Service", "Repository", "Customizer", "Specification", "Dto"];
+        private readonly IConsoleWriter consoleWriter = consoleWriter;
         private Solution CurrentSolution;
         public IReadOnlyList<ClassInfo> CurrentSolutionClasses { get; private set; } = [];
 
         private MSBuildWorkspace Workspace { get; set; }
 
-        public CSharpParserService(IConsoleWriter consoleWriter, UIEventBroker eventBroker)
+        public void Dispose()
         {
-            this.consoleWriter = consoleWriter;
-            this.eventBroker = eventBroker;
+            Workspace?.Dispose();
+            Workspace = null;
         }
 
-        public ClassDefinition ParseClassFile(string fileName)
+        public ClassDefinition ParseClassFile(string fileName, CancellationToken cancellationToken = default)
         {
-#if DEBUG
-            consoleWriter.AddMessageLine($"Parse file: '{fileName}'", "Green");
-#endif
+            DiagLog.Write($"ParseClassFile: {fileName}");
+            cancellationToken.ThrowIfCancellationRequested();
 
-            var cancellationToken = new CancellationToken();
+            // NOTE: consoleWriter.AddMessageLine is NOT thread-safe — it touches WPF controls
+            // without dispatching, so calling it from a worker thread (Task.Run) crashes the app.
+            // Diagnostic logging goes through DiagLog instead.
 
-            var fileText = File.ReadAllText(fileName);
+            string fileText = File.ReadAllText(fileName);
 
-            var tree = CSharpSyntaxTree.ParseText(fileText, cancellationToken: cancellationToken);
-            var root = tree.GetCompilationUnitRoot(cancellationToken: cancellationToken);
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(fileText, cancellationToken: cancellationToken);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot(cancellationToken: cancellationToken);
             if (root.ContainsDiagnostics)
             {
                 // source contains syntax error
@@ -63,23 +66,21 @@ using Roslyn.Services;*/
             }
 
             TypeDeclarationSyntax typeDeclaration;
-            var descendants = root.Descendants<TypeDeclarationSyntax>();
-            if (descendants.Count() == 1)
+            // Materialize the list ONCE — the underlying enumerable walks the whole syntax tree
+            // each time it is enumerated, so previous code was re-walking the tree three times.
+            List<TypeDeclarationSyntax> descendants = [.. root.Descendants<TypeDeclarationSyntax>()];
+            if (descendants.Count == 1)
             {
-                typeDeclaration = descendants.Single();
+                typeDeclaration = descendants[0];
             }
-            else if (descendants.Count() > 1)
+            else if (descendants.Count > 1)
             {
-#if DEBUG
-                consoleWriter.AddMessageLine($"More of one declaration found on file '{fileName}' :", "Orange");
-                descendants.ToList().ForEach(x => consoleWriter.AddMessageLine($"   - {x.Identifier} ({x.Kind()})", "Orange"));
-#endif
-                // TODO NMA 
-                typeDeclaration = descendants.Where(x => x.IsKind(SyntaxKind.ClassDeclaration)).Single();
+                // TODO NMA
+                typeDeclaration = descendants.Single(x => x.IsKind(SyntaxKind.ClassDeclaration));
             }
             else
             {
-                consoleWriter.AddMessageLine($"No declaration found on file '{fileName}' :", "Orange");
+                DiagLog.Write($"ParseClassFile: no declaration found in '{fileName}'");
                 typeDeclaration = null;
             }
             NamespaceDeclarationSyntax namespaceSyntax = root.Descendants<NamespaceDeclarationSyntax>().SingleOrDefault();
@@ -93,26 +94,26 @@ using Roslyn.Services;*/
                 VisibilityList = typeDeclaration.Modifiers,
             };
 
-            List<MemberDeclarationSyntax> propertyList = typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.PropertyDeclaration).ToList();
-            if (propertyList != null && propertyList.Any())
+            List<MemberDeclarationSyntax> propertyList = [.. typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.PropertyDeclaration)];
+            if (propertyList != null && propertyList.Count > 0)
             {
                 propertyList.ForEach(x => classDefinition.PropertyList.Add((PropertyDeclarationSyntax)x));
             }
 
-            List<MemberDeclarationSyntax> fieldList = typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.FieldDeclaration).ToList();
-            if (fieldList != null && fieldList.Any())
+            List<MemberDeclarationSyntax> fieldList = [.. typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.FieldDeclaration)];
+            if (fieldList != null && fieldList.Count > 0)
             {
                 fieldList.ForEach(x => classDefinition.FieldList.Add((FieldDeclarationSyntax)x));
             }
 
-            List<MemberDeclarationSyntax> constructorList = typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.ConstructorDeclaration).ToList();
-            if (constructorList != null && constructorList.Any())
+            List<MemberDeclarationSyntax> constructorList = [.. typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.ConstructorDeclaration)];
+            if (constructorList != null && constructorList.Count > 0)
             {
                 constructorList.ForEach(x => classDefinition.ConstructorList.Add((ConstructorDeclarationSyntax)x));
             }
 
-            List<MemberDeclarationSyntax> methodList = typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.MethodDeclaration).ToList();
-            if (methodList != null && methodList.Any())
+            List<MemberDeclarationSyntax> methodList = [.. typeDeclaration.Members.Where(x => x.Kind() == SyntaxKind.MethodDeclaration)];
+            if (methodList != null && methodList.Count > 0)
             {
                 methodList.ForEach(x => classDefinition.MethodList.Add((MethodDeclarationSyntax)x));
             }
@@ -120,9 +121,9 @@ using Roslyn.Services;*/
             return classDefinition;
         }
 
-        public List<Domain.DtoGenerator.PropertyInfo> GetPropertyList(List<PropertyDeclarationSyntax> propertyList, string dtoCustomAttributeName)
+        public static List<Domain.ModifyProject.DtoGenerator.PropertyInfo> GetPropertyList(List<PropertyDeclarationSyntax> propertyList, string dtoCustomAttributeName)
         {
-            return propertyList.Select(prop =>
+            return [.. propertyList.Select(prop =>
             {
                 foreach (AttributeListSyntax attributes in prop.AttributeLists.ToList())
                 {
@@ -131,13 +132,13 @@ using Roslyn.Services;*/
                         string annontationType = attribute.Name.ToString();
                         if (dtoCustomAttributeName.Equals(annontationType, StringComparison.OrdinalIgnoreCase))
                         {
-                            List<AttributeArgumentSyntax> annotations = attribute?.ArgumentList?.Arguments.ToList();
-                            return new Domain.DtoGenerator.PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), annotations);
+                            var annotations = attribute?.ArgumentList?.Arguments.ToList();
+                            return new Domain.ModifyProject.DtoGenerator.PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), annotations);
                         }
                     }
                 }
-                return new Domain.DtoGenerator.PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), null);
-            }).ToList();
+                return new Domain.ModifyProject.DtoGenerator.PropertyInfo(prop.Type.ToString(), prop.Identifier.ToString(), null);
+            })];
         }
 
         public static List<AttributeArgumentSyntax> GetClassAnnotationList(SyntaxList<AttributeListSyntax> attributeLists, string dtoCustomClassName)
@@ -159,7 +160,7 @@ using Roslyn.Services;*/
 
         public IEnumerable<EntityInfo> GetDomainEntities(Domain.ModifyProject.Project project)
         {
-            List<EntityInfo> entities = new();
+            List<EntityInfo> entities = [];
 
             string entitiesFolder = $"{project.CompanyName}.{project.Name}.Domain";
             string projectDomainPath = Path.Combine(project.Folder, Constants.FolderDotNet, entitiesFolder);
@@ -169,7 +170,7 @@ using Roslyn.Services;*/
             {
                 if (Directory.Exists(projectDomainPath))
                 {
-                    foreach (var entity in CurrentSolutionClasses.Where(x =>
+                    foreach (ClassInfo entity in CurrentSolutionClasses.Where(x =>
                         !x.FilePath.StartsWith(projectDomainDtoPath, StringComparison.InvariantCultureIgnoreCase)
                         && x.FilePath.StartsWith(projectDomainPath, StringComparison.InvariantCultureIgnoreCase)
                         && x.FilePath.EndsWith(".cs")
@@ -181,7 +182,9 @@ using Roslyn.Services;*/
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine(ex.Message, "Red");
+                // Use DiagLog instead of consoleWriter — this method may run on a worker thread
+                // (Task.Run) where touching WPF controls crashes the app.
+                DiagLog.Write($"GetDomainEntities: ERROR: {ex.Message}");
             }
 
             return entities.OrderBy(x => x.Name);
@@ -207,21 +210,23 @@ using Roslyn.Services;*/
 
                 var msBuildDirectories = new List<DirectoryInfo>();
 
-                var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
                 var vsDirectory = new DirectoryInfo(Path.Combine(programFiles, "Microsoft Visual Studio"));
                 if (vsDirectory.Exists)
                 {
                     msBuildDirectories.AddRange(vsDirectory.GetDirectories("MSBuild", SearchOption.AllDirectories));
                 }
 
-                var msbuildPath = msBuildDirectories
+                string msbuildPath = msBuildDirectories
                     .SelectMany(msBuildDir => msBuildDir.GetFiles("MSBuild.exe", SearchOption.AllDirectories))
                     .OrderByDescending(msBuild => msBuild.LastWriteTimeUtc)
                     .FirstOrDefault()?.FullName;
 
                 if (string.IsNullOrWhiteSpace(msbuildPath))
                 {
-                    consoleWriter.AddMessageLine("Error: MSBuild is not installed on this system.", "red");
+                    // Use DiagLog — RegisterMSBuild is called from Task.Run, so consoleWriter
+                    // (which touches WPF controls) would crash the app.
+                    DiagLog.Write("RegisterMSBuild: ERROR: MSBuild is not installed on this system.");
                     return;
                 }
 
@@ -230,35 +235,41 @@ using Roslyn.Services;*/
             }
             catch (Exception ex)
             {
-                consoleWriter.AddMessageLine($"Error: Failed to register MSBuild : {ex.Message}", "red");
+                DiagLog.Write($"RegisterMSBuild: ERROR: Failed to register MSBuild: {ex.Message}");
             }
         }
 
         private void InitWorkspace()
         {
+            Workspace?.Dispose();
             Workspace = MSBuildWorkspace.Create();
 
             if (Workspace == null)
             {
-                consoleWriter.AddMessageLine("Error: Workspace could not be created.", "red");
+                // Use DiagLog — InitWorkspace is called from RegisterMSBuild which runs in Task.Run.
+                DiagLog.Write("InitWorkspace: ERROR: Workspace could not be created.");
                 return;
             }
         }
 
-        public async Task LoadSolution(string solutionPath)
+        public async Task LoadSolution(string solutionPath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             if (Workspace is null)
             {
                 consoleWriter.AddMessageLine($"MSBuildWorkspace has not been initialized", "red");
                 return;
             }
 
-            if (!await RestoreSolution(solutionPath))
+            if (!await RestoreSolution(solutionPath, ct))
                 return;
+
+            ct.ThrowIfCancellationRequested();
 
             consoleWriter.AddMessageLine("Opening solution...", "darkgray");
             Workspace.CloseSolution();
-            var solution = await Workspace.OpenSolutionAsync(solutionPath);
+            Solution solution = await Workspace.OpenSolutionAsync(solutionPath, cancellationToken: ct);
 
             if (solution == null)
             {
@@ -270,36 +281,39 @@ using Roslyn.Services;*/
             CurrentSolution = solution;
         }
 
-        public async Task ParseSolutionClasses()
+        public async Task ParseSolutionClasses(CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             if (CurrentSolution is null)
             {
                 consoleWriter.AddMessageLine("No solution loaded to parse.", "red");
                 return;
             }
 
-            var result = new List<ClassInfo>();
             consoleWriter.AddMessageLine("Parsing classes...", "darkgray");
 
-            var classesInfosPerProjectTasks = CurrentSolution.Projects.Select(GetClassesInfoFromProject);
-            var classesInfosReports = await Task.WhenAll(classesInfosPerProjectTasks);
-            foreach (var report in classesInfosReports)
+            IEnumerable<Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)>> classesInfosPerProjectTasks = CurrentSolution.Projects.Select(project => GetClassesInfoFromProject(project, ct));
+            (List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)[] classesInfosReports = await Task.WhenAll(classesInfosPerProjectTasks);
+            foreach ((List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds) report in classesInfosReports)
             {
+                ct.ThrowIfCancellationRequested();
                 consoleWriter.AddMessageLine($"{report.Project} : {report.ClassesCount} classes parsed in {report.ElapsedSeconds} seconds", "gray");
             }
-            CurrentSolutionClasses = classesInfosReports.SelectMany(x => x.ClassesInfo).ToList();
-            eventBroker.NotifySolutionClassesParsed();
+            CurrentSolutionClasses = [.. classesInfosReports.SelectMany(x => x.ClassesInfo)];
+            WeakReferenceMessenger.Default.Send(new SolutionClassesParsedMessage());
             consoleWriter.AddMessageLine($"Classes parsed successfully", "lightgreen");
         }
 
-        private async Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)> GetClassesInfoFromProject(Project project)
+        private async Task<(List<ClassInfo> ClassesInfo, string Project, int ClassesCount, double ElapsedSeconds)> GetClassesInfoFromProject(Project project, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             var result = new List<ClassInfo>();
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
             // Compilation (nécessaire pour symboles/semantics)
-            var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
+            Compilation compilation = await project.GetCompilationAsync(ct).ConfigureAwait(false);
             if (compilation is null)
             {
                 return (result, project.Name, 0, 0);
@@ -314,10 +328,12 @@ using Roslyn.Services;*/
                     && !t.IsAbstract)
                 .ToList();
 
-            foreach (var cls in allTypes)
+            foreach (INamedTypeSymbol cls in allTypes)
             {
+                ct.ThrowIfCancellationRequested();
+
                 // Fichier source principal (si partiel, on prend la 1re location source)
-                var filePath = cls.Locations.FirstOrDefault(l => l.IsInSource)?.SourceTree?.FilePath ?? string.Empty;
+                string filePath = cls.Locations.FirstOrDefault(l => l.IsInSource)?.SourceTree?.FilePath ?? string.Empty;
 
                 // Attributs de la classe
                 var classAttributes = cls.GetAttributes()
@@ -330,7 +346,7 @@ using Roslyn.Services;*/
                         TypeName: RoslynHelper.Display(p.Type),
                         Name: p.Name,
                         IsExplicitInterfaceImplementation: p.ExplicitInterfaceImplementations.Length > 0,
-                        Attributes: p.GetAttributes().Select(RoslynHelper.ToAttributeInfo).ToList()
+                        Attributes: [.. p.GetAttributes().Select(RoslynHelper.ToAttributeInfo)]
                     ))
                     .ToList();
 
@@ -362,8 +378,10 @@ using Roslyn.Services;*/
             return (result, project.Name, result.Count, stopwatch.Elapsed.TotalSeconds);
         }
 
-        public async Task FixUsings()
+        public async Task FixUsings(CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+            
             if (string.IsNullOrWhiteSpace(CurrentSolution?.FilePath))
             {
                 consoleWriter.AddMessageLine("No solution loaded to fix usings.", "red");
@@ -374,53 +392,59 @@ using Roslyn.Services;*/
 
             try
             {
-                await LoadSolution(CurrentSolution.FilePath);
-                foreach (var project in CurrentSolution.Projects)
+                await LoadSolution(CurrentSolution.FilePath, ct);
+                foreach (Project project in CurrentSolution.Projects)
                 {
+                    ct.ThrowIfCancellationRequested();
                     try
                     {
                         consoleWriter.AddMessageLine($"Analyzing project {project.Name}...", "darkgray");
 
-                        foreach (var document in project.Documents)
+                        foreach (Document document in project.Documents)
                         {
+                            ct.ThrowIfCancellationRequested();
                             try
                             {
-                                if (await document.GetSyntaxRootAsync() is not CompilationUnitSyntax syntaxRoot)
+                                if (await document.GetSyntaxRootAsync(ct) is not CompilationUnitSyntax syntaxRoot)
                                 {
                                     consoleWriter.AddMessageLine($"-> {document.Name} : No compilation unit syntax root found.", "orange");
                                     continue;
                                 }
 
-                                var compilation = await project.GetCompilationAsync();
+                                Compilation compilation = await project.GetCompilationAsync(ct);
                                 if (compilation == null)
                                 {
                                     consoleWriter.AddMessageLine($"-> {document.Name} : Compilation not available.", "orange");
                                     continue;
                                 }
 
-                                var documentSyntaxTree = await document.GetSyntaxTreeAsync();
+                                SyntaxTree documentSyntaxTree = await document.GetSyntaxTreeAsync(ct);
                                 if (documentSyntaxTree == null)
                                 {
                                     consoleWriter.AddMessageLine($"-> {document.Name} : No syntax tree available.", "orange");
                                     continue;
                                 }
 
-                                var semanticModel = compilation.GetSemanticModel(documentSyntaxTree);
+                                SemanticModel semanticModel = compilation.GetSemanticModel(documentSyntaxTree);
                                 if (semanticModel == null)
                                 {
                                     consoleWriter.AddMessageLine($"-> {document.Name} : No semantic model available.", "orange");
                                     continue;
                                 }
 
-                                var (rootAfterAdd, missingUsingsAdded) = AddMissingUsings(document.Name, syntaxRoot, compilation, semanticModel);
-                                var (rootAfterRemove, obsoleteUsingsRemoved) = RemoveObsoleteUsings(semanticModel, document.Name, rootAfterAdd);
-                                var (finalRoot, usingsReordered) = OrderUsings(rootAfterRemove, document.Name);
+                                (CompilationUnitSyntax rootAfterAdd, bool missingUsingsAdded) = AddMissingUsings(document.Name, syntaxRoot, compilation, semanticModel);
+                                (CompilationUnitSyntax rootAfterRemove, bool obsoleteUsingsRemoved) = RemoveObsoleteUsings(semanticModel, document.Name, rootAfterAdd);
+                                (CompilationUnitSyntax finalRoot, bool usingsReordered) = OrderUsings(rootAfterRemove, document.Name);
 
                                 if (missingUsingsAdded || obsoleteUsingsRemoved || usingsReordered)
                                 {
-                                    var formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(finalRoot, Workspace);
+                                    SyntaxNode formattedRoot = Microsoft.CodeAnalysis.Formatting.Formatter.Format(finalRoot, Workspace, cancellationToken: ct);
                                     File.WriteAllText(document.FilePath!, formattedRoot.ToFullString());
                                 }
+                            }
+                            catch(OperationCanceledException)
+                            {
+                                throw;
                             }
                             catch (Exception docEx)
                             {
@@ -428,11 +452,19 @@ using Roslyn.Services;*/
                             }
                         }
                     }
+                    catch(OperationCanceledException)
+                        {
+                            throw;
+                        }
                     catch (Exception projEx)
                     {
                         consoleWriter.AddMessageLine($"{projEx.Message}\n{projEx.StackTrace}", "red");
                     }
                 }
+            }
+            catch(OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception solEx)
             {
@@ -444,7 +476,7 @@ using Roslyn.Services;*/
             }
         }
 
-        private async Task<bool> RestoreSolution(string solutionPath)
+        private async Task<bool> RestoreSolution(string solutionPath, CancellationToken ct = default)
         {
             if (IsSolutionRestored(solutionPath))
                 return true;
@@ -463,15 +495,26 @@ using Roslyn.Services;*/
             // MSBuildLocator injects env vars (MSBUILD_EXE_PATH, MSBuildSDKsPath, etc.) into the
             // current process that point to the VS MSBuild. Child processes inherit them, which
             // makes the dotnet SDK pick up the wrong MSBuild and fail. Clear them explicitly.
-            foreach (var varName in new[] { "MSBUILD_EXE_PATH", "MSBuildSDKsPath", "MSBuildExtensionsPath", "VisualStudioVersion" })
+            foreach (string varName in new[] { "MSBUILD_EXE_PATH", "MSBuildSDKsPath", "MSBuildExtensionsPath", "VisualStudioVersion" })
             {
                 startInfo.EnvironmentVariables.Remove(varName);
             }
 
             using var process = new Process { StartInfo = startInfo };
             process.Start();
-            var stdError = await process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
+
+            // Register cancellation to kill the restore process (ct alone won't
+            // terminate the dotnet child process — we must kill it explicitly).
+            using var registration = ct.Register(() =>
+            {
+                try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
+                catch { /* process may have already exited */ }
+            });
+
+            string stdError = await process.StandardError.ReadToEndAsync(ct);
+            await process.WaitForExitAsync(ct);
+
+            ct.ThrowIfCancellationRequested();
 
             if (process.ExitCode != 0)
             {
@@ -485,15 +528,15 @@ using Roslyn.Services;*/
 
         private static bool IsSolutionRestored(string solutionPath)
         {
-            var solutionDir = Path.GetDirectoryName(solutionPath)!;
-            var csprojFiles = Directory.GetFiles(solutionDir, "*.csproj", SearchOption.AllDirectories).Where(x => !x.Contains("BIAPackage"));
+            string solutionDir = Path.GetDirectoryName(solutionPath)!;
+            IEnumerable<string> csprojFiles = Directory.GetFiles(solutionDir, "*.csproj", SearchOption.AllDirectories).Where(x => !x.Contains("BIAPackage"));
             return csprojFiles.All(IsProjectRestored);
         }
 
         private static bool IsProjectRestored(string projectFilePath)
         {
-            var projectDir = Path.GetDirectoryName(projectFilePath);
-            var assetsFile = Path.Combine(projectDir!, "obj", "project.assets.json");
+            string projectDir = Path.GetDirectoryName(projectFilePath);
+            string assetsFile = Path.Combine(projectDir!, "obj", "project.assets.json");
             return File.Exists(assetsFile);
         }
 
@@ -506,13 +549,13 @@ using Roslyn.Services;*/
             var typesWithMissingNamespace = missingUsingDiagnostics
                 .Select(d =>
                 {
-                    var message = d.GetMessage();
+                    string message = d.GetMessage();
                     if (string.IsNullOrWhiteSpace(message))
                         return string.Empty;
 
-                    var extractTypeRegex = @"'([^']*)'";
-                    var match = Regex.Match(message, extractTypeRegex);
-                    var typeName = d.Id switch
+                    string extractTypeRegex = @"'([^']*)'";
+                    Match match = Regex.Match(message, extractTypeRegex);
+                    string typeName = d.Id switch
                     {
                         "CS0118" => match.Success ? match.Groups[1].Value : string.Empty,
                         "CS0246" => match.Success ? match.Groups[1].Value : string.Empty,
@@ -532,9 +575,9 @@ using Roslyn.Services;*/
             var missingNamespaces = new List<string>();
             var typesWithMultipleNamespaces = new List<string>();
             var typesWithoutNamespaces = new List<string>();
-            foreach (var type in typesWithMissingNamespace)
+            foreach (string type in typesWithMissingNamespace)
             {
-                var namespaces = FindNamespaces(type, compilation);
+                IEnumerable<string> namespaces = FindNamespaces(type, compilation);
                 if (namespaces.Count() == 1)
                     missingNamespaces.Add(namespaces.First());
                 else if (namespaces.Count() > 1)
@@ -548,7 +591,7 @@ using Roslyn.Services;*/
             if (typesWithoutNamespaces.Count != 0)
                 consoleWriter.AddMessageLine($"-> {documentName} : Unable to resolve usings namespace for types {string.Join(", ", typesWithoutNamespaces)}", "orange");
 
-            var updatedRoot = syntaxRoot;
+            CompilationUnitSyntax updatedRoot = syntaxRoot;
 
             if (missingNamespaces.Count == 0)
                 return (updatedRoot, false);
@@ -570,10 +613,10 @@ using Roslyn.Services;*/
             if (newUsings.Count == 0)
                 return (updatedRoot, false);
 
-            var lastUsing = usingDirectives.LastOrDefault();
+            UsingDirectiveSyntax lastUsing = usingDirectives.LastOrDefault();
             updatedRoot = lastUsing != null ?
                 syntaxRoot.ReplaceNode(lastUsing, new[] { lastUsing }.Concat(newUsings)) :
-                syntaxRoot.AddUsings(newUsings.ToArray());
+                syntaxRoot.AddUsings([.. newUsings]);
 
             consoleWriter.AddMessageLine($"-> {documentName} : {missingNamespaces.Count} missing using added", "lightgreen");
 
@@ -589,16 +632,16 @@ using Roslyn.Services;*/
             if (obsoleteNamespaceDiagnostics.Count == 0)
                 return (syntaxRoot, false);
 
-            var usingsRemovedCount = 0;
-            var updatedRoot = syntaxRoot;
-            foreach (var obsoleteNamespaceDiagnostic in obsoleteNamespaceDiagnostics)
+            int usingsRemovedCount = 0;
+            CompilationUnitSyntax updatedRoot = syntaxRoot;
+            foreach (Diagnostic obsoleteNamespaceDiagnostic in obsoleteNamespaceDiagnostics)
             {
-                var diagnosticSpan = obsoleteNamespaceDiagnostic.Location.SourceSpan;
-                var diagnosticNode = syntaxRoot.FindNode(diagnosticSpan);
+                TextSpan diagnosticSpan = obsoleteNamespaceDiagnostic.Location.SourceSpan;
+                SyntaxNode diagnosticNode = syntaxRoot.FindNode(diagnosticSpan);
 
                 if (diagnosticNode is IdentifierNameSyntax identifierName)
                 {
-                    var usingDirective = identifierName.Ancestors()
+                    UsingDirectiveSyntax usingDirective = identifierName.Ancestors()
                                                        .OfType<UsingDirectiveSyntax>()
                                                        .FirstOrDefault();
 
@@ -629,11 +672,11 @@ using Roslyn.Services;*/
 
         private (CompilationUnitSyntax UpdatedRoot, bool HasChanges) OrderUsings(CompilationUnitSyntax syntaxRoot, string documentName)
         {
-            var updatedRoot = syntaxRoot;
+            CompilationUnitSyntax updatedRoot = syntaxRoot;
 
             if (syntaxRoot.Usings.Any())
             {
-                var ordered = OrderUsingsList(syntaxRoot.Usings);
+                SyntaxList<UsingDirectiveSyntax> ordered = OrderUsingsList(syntaxRoot.Usings);
                 updatedRoot = updatedRoot.WithUsings(ordered);
             }
 
@@ -646,7 +689,7 @@ using Roslyn.Services;*/
                 if (!oldNs.Usings.Any())
                     return oldNs;
 
-                var ordered = OrderUsingsList(oldNs.Usings);
+                SyntaxList<UsingDirectiveSyntax> ordered = OrderUsingsList(oldNs.Usings);
                 return oldNs.WithUsings(ordered);
             });
 
@@ -661,22 +704,22 @@ using Roslyn.Services;*/
 
         private static SyntaxList<UsingDirectiveSyntax> OrderUsingsList(SyntaxList<UsingDirectiveSyntax> usings)
         {
-            var regularUsings = usings.Where(u => u.StaticKeyword.IsKind(SyntaxKind.None));
-            var staticUsings = usings.Except(regularUsings);
+            IEnumerable<UsingDirectiveSyntax> regularUsings = usings.Where(u => u.StaticKeyword.IsKind(SyntaxKind.None));
+            IEnumerable<UsingDirectiveSyntax> staticUsings = usings.Except(regularUsings);
 
-            var orderedRegularUsings = OrderUsingsGroup(regularUsings);
-            var orderedStaticUsings = OrderUsingsGroup(staticUsings);
+            IEnumerable<UsingDirectiveSyntax> orderedRegularUsings = OrderUsingsGroup(regularUsings);
+            IEnumerable<UsingDirectiveSyntax> orderedStaticUsings = OrderUsingsGroup(staticUsings);
 
             return SyntaxFactory.List(orderedRegularUsings.Concat(orderedStaticUsings));
         }
 
         private static IEnumerable<UsingDirectiveSyntax> OrderUsingsGroup(IEnumerable<UsingDirectiveSyntax> usings)
         {
-            var systemUsings = usings.Where(u => u.Name is IdentifierNameSyntax id && id.Identifier.Text.StartsWith("System") ||
+            IOrderedEnumerable<UsingDirectiveSyntax> systemUsings = usings.Where(u => u.Name is IdentifierNameSyntax id && id.Identifier.Text.StartsWith("System") ||
                                                   u.Name is QualifiedNameSyntax qn && qn.ToString().StartsWith("System"))
                                       .OrderBy(u => u.Name.ToString(), StringComparer.OrdinalIgnoreCase);
 
-            var otherUsings = usings.Except(systemUsings)
+            IOrderedEnumerable<UsingDirectiveSyntax> otherUsings = usings.Except(systemUsings)
                                     .OrderBy(u => u.Name.ToString(), StringComparer.OrdinalIgnoreCase);
 
             return systemUsings.Concat(otherUsings);
@@ -690,9 +733,9 @@ using Roslyn.Services;*/
 
             try
             {
-                foreach (var symbol in compilation.GlobalNamespace.GetMembers())
+                foreach (INamespaceOrTypeSymbol symbol in compilation.GlobalNamespace.GetMembers())
                 {
-                    var matchingType = FindType(symbol, typeName);
+                    INamedTypeSymbol matchingType = FindType(symbol, typeName);
                     if (matchingType != null)
                         result.Add(matchingType.ContainingNamespace.ToDisplayString());
                 }
@@ -711,7 +754,7 @@ using Roslyn.Services;*/
         {
             var result = new List<string>();
 
-            foreach (var reference in compilation.References)
+            foreach (MetadataReference reference in compilation.References)
             {
                 try
                 {
@@ -722,9 +765,9 @@ using Roslyn.Services;*/
 
                     if (assemblySymbol.TypeNames.Contains(typeName))
                     {
-                        foreach (var symbol in assemblySymbol.GlobalNamespace.GetMembers())
+                        foreach (INamespaceOrTypeSymbol symbol in assemblySymbol.GlobalNamespace.GetMembers())
                         {
-                            var matchingType = FindType(symbol, typeName);
+                            INamedTypeSymbol matchingType = FindType(symbol, typeName);
                             if (matchingType != null)
                                 result.Add(matchingType.ContainingNamespace.ToDisplayString());
                         }
@@ -749,9 +792,9 @@ using Roslyn.Services;*/
                 .Cast<INamespaceOrTypeSymbol>()
                 .ToList();
 
-            foreach (var memberSymbol in memberSymbols)
+            foreach (INamespaceOrTypeSymbol memberSymbol in memberSymbols)
             {
-                var memberTypeSymbol = FindType(memberSymbol, typeName);
+                INamedTypeSymbol memberTypeSymbol = FindType(memberSymbol, typeName);
                 if (memberTypeSymbol != null)
                     return memberTypeSymbol;
             }

@@ -1,24 +1,15 @@
-﻿using System.Linq;
+using System.Linq;
 
-namespace BIA.ToolKit.Domain.DtoGenerator
+namespace BIA.ToolKit.Domain.ModifyProject.DtoGenerator
 {
-    public class ProjectInfo
+    public class ProjectInfo(string baseDirectory, string fullName, TemplateType templateType, UiFramework uiFramework, bool tiered)
     {
-        public ProjectInfo(string baseDirectory, string fullName, TemplateType templateType, UiFramework uiFramework, bool tiered)
-        {
-            BaseDirectory = baseDirectory;
-            TemplateType = templateType;
-            UiFramework = uiFramework;
-            Tiered = tiered;
-            FullName = fullName;
-        }
-
-        public string BaseDirectory { get; }
-        public string FullName { get; }
+        public string BaseDirectory { get; } = baseDirectory;
+        public string FullName { get; } = fullName;
         public string Name => FullName.Split('.').Last();
-        public TemplateType TemplateType { get; }
-        public UiFramework UiFramework { get; }
-        public bool Tiered { get; }
+        public TemplateType TemplateType { get; } = templateType;
+        public UiFramework UiFramework { get; } = uiFramework;
+        public bool Tiered { get; } = tiered;
 
         public override string ToString()
         {

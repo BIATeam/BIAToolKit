@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using System;
     using System.Collections.Generic;
@@ -9,21 +9,23 @@
     using System.Net;
     using System.Net.Http;
     using System.Reflection;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Common;
     using BIA.ToolKit.Domain;
+    using CommunityToolkit.Mvvm.Messaging;
 
-    public class UpdateService
+    public class UpdateService(IConsoleWriter consoleWriter, SettingsService settingsService)
     {
         private const string UpdateArchiveName = "BIAToolKit.zip";
         private const string UpdaterArchiveName = "BIAToolKitUpdater.zip";
         private const string UpdaterName = "BIA.ToolKit.Updater.exe";
 
-        private readonly UIEventBroker eventBroker;
-        private readonly IConsoleWriter consoleWriter;
-        private readonly SettingsService settingsService;
+        private readonly IConsoleWriter consoleWriter = consoleWriter;
+        private readonly SettingsService settingsService = settingsService;
         private Version currentVersion;
         private Release lastRelease;
         public Version NewVersion
@@ -32,25 +34,20 @@
         }
         public bool HasNewVersion { get; private set; }
 
-        public UpdateService(UIEventBroker eventBroker, IConsoleWriter consoleWriter, SettingsService settingsService)
-        {
-            this.eventBroker = eventBroker;
-            this.consoleWriter = consoleWriter;
-            this.settingsService = settingsService;
-        }
-
         public void SetAppVersion(Version version)
         {
-            this.currentVersion = version;
+            currentVersion = version;
             BiaToolkitVersion.ApplicationVersion = version.ToString();
         }
 
-        public async Task CheckForUpdatesAsync()
+        public async Task CheckForUpdatesAsync(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            
             try
             {
-                var toolkitRepository = settingsService.Settings.ToolkitRepository;
-                await toolkitRepository.FillReleasesAsync();
+                IRepository toolkitRepository = settingsService.Settings.ToolkitRepository;
+                await toolkitRepository.FillReleasesAsync(cancellationToken);
 
                 if (toolkitRepository.Releases.Count == 0)
                 {
@@ -59,13 +56,13 @@
                 }
 
                 var releases = new List<(Release Release, Version Version)>();
-                foreach (var repositoryRelease in toolkitRepository.Releases)
+                foreach (Release repositoryRelease in toolkitRepository.Releases)
                 {
                     if (repositoryRelease.Name.StartsWith('V') && Version.TryParse(repositoryRelease.Name[1..], out Version version))
                     {
                         releases.Add((repositoryRelease, version));
                     }
-                    else if(Version.TryParse(repositoryRelease.Name, out version))
+                    else if (Version.TryParse(repositoryRelease.Name, out version))
                     {
                         releases.Add((repositoryRelease, version));
                     }
@@ -78,14 +75,14 @@
                     return;
                 }
 
-                var lastRelease = releases.OrderByDescending(r => r.Version).First();
+                (Release Release, Version Version) lastRelease = releases.OrderByDescending(r => r.Version).First();
                 if (lastRelease.Version > currentVersion)
                 {
                     consoleWriter.AddMessageLine($"A new version of BIAToolKit is available: {lastRelease.Release.Name}", "Yellow");
                     HasNewVersion = true;
                     NewVersion = lastRelease.Version;
                     this.lastRelease = lastRelease.Release;
-                    eventBroker.NotifyNewVersionAvailable();
+                    WeakReferenceMessenger.Default.Send(new NewVersionAvailableMessage());
                     return;
                 }
 
@@ -98,26 +95,27 @@
             }
         }
 
-        public async Task DownloadUpdateAsync()
+        public async Task DownloadUpdateAsync(CancellationToken cancellationToken = default)
         {
             if (Debugger.IsAttached)
                 return;
 
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 consoleWriter.AddMessageLine($"Start download assets of release {lastRelease.Name}...", "Pink");
                 await lastRelease.DownloadAsync();
                 consoleWriter.AddMessageLine($"Assets downloaded successfully", "green");
 
-                var updateArchivePath = Path.Combine(lastRelease.LocalPath, UpdateArchiveName);
+                string updateArchivePath = Path.Combine(lastRelease.LocalPath, UpdateArchiveName);
                 if (!File.Exists(updateArchivePath))
                     throw new FileNotFoundException(updateArchivePath);
 
-                var updaterArchivePath = Path.Combine(lastRelease.LocalPath, UpdaterArchiveName);
+                string updaterArchivePath = Path.Combine(lastRelease.LocalPath, UpdaterArchiveName);
                 if (!File.Exists(updaterArchivePath))
                     throw new FileNotFoundException(updaterArchivePath);
 
-                var updaterFolderPath = Path.Combine(lastRelease.LocalPath, Path.GetFileNameWithoutExtension(UpdaterArchiveName));
+                string updaterFolderPath = Path.Combine(lastRelease.LocalPath, Path.GetFileNameWithoutExtension(UpdaterArchiveName));
                 ZipFile.ExtractToDirectory(updaterArchivePath, updaterFolderPath);
                 consoleWriter.AddMessageLine($"{UpdaterArchiveName} extracted", "Gray");
 

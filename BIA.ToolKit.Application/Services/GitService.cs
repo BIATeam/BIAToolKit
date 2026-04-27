@@ -1,7 +1,8 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using System;
     using LibGit2Sharp;
@@ -14,18 +15,11 @@
     using System.Text.RegularExpressions;
     using BIA.ToolKit.Domain;
 
-    public class GitService
+    public class GitService(IConsoleWriter outPut)
     {
-        private IConsoleWriter outPut;
-        private readonly UIEventBroker eventBroker;
+        private readonly IConsoleWriter outPut = outPut;
 
-        public GitService(IConsoleWriter outPut, UIEventBroker eventBroker)
-        {
-            this.outPut = outPut;
-            this.eventBroker = eventBroker;
-        }
-
-        public async Task Synchronize(IRepositoryGit repository)
+        public async Task Synchronize(IRepositoryGit repository, CancellationToken ct = default)
         {
             if (!repository.UseLocalClonedFolder)
             {
@@ -34,7 +28,7 @@
                     if (Directory.Exists(repository.LocalPath))
                     {
                         var dirInfo = new DirectoryInfo(repository.LocalPath);
-                        foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                        foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
                         {
                             file.Attributes = FileAttributes.Normal;
                             File.Delete(file.FullName);
@@ -43,19 +37,20 @@
                     }
 
                     Directory.CreateDirectory(repository.LocalPath);
-                });
+                }, ct);
 
-                await Clone(repository.Url, repository.LocalPath);
+                await Clone(repository.Url, repository.LocalPath, ct);
                 return;
             }
 
-            await Synchronize(repository.Url, repository.LocalPath);
+            await Synchronize(repository.Url, repository.LocalPath, ct);
         }
 
-        public async Task Synchronize(string url, string localPath)
+        public async Task Synchronize(string url, string localPath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             outPut.AddMessageLine($"Synchronize {url} into {localPath}...", "Pink");
-            if (await RunScript("git", "pull", localPath) == 0)
+            if (await RunScript("git", "pull", localPath, ct) == 0)
             {
                 outPut.AddMessageLine($"Synchronize finished", "Green");
             }
@@ -65,11 +60,12 @@
             }
         }
 
-        public async Task Clone(string url, string localPath)
+        public async Task Clone(string url, string localPath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             outPut.AddMessageLine($"Clone {url} into {localPath}...", "Pink");
 
-            if (await RunScript("git", $"clone \"" + url + "\" \"" + localPath + "\"") == 0)
+            if (await RunScript("git", ["clone", url, localPath], ct: ct) == 0)
             {
                 outPut.AddMessageLine($"Clone finished", "Green");
             }
@@ -79,33 +75,34 @@
             }
         }
 
-        public async Task<bool> DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath)
+        public async Task<bool> DiffFolder(bool actionFinishedAtEnd, string rootPath, string name1, string name2, string migrateFilePath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             outPut.AddMessageLine($"Diff {name1} <> {name2}", "Pink");
 
 
             // git diff --no-index V3.3.3 V3.4.0 > .\\Migration\\CF_3.3.3-3.4.0.patch
             //await RunScript($"cd {rootPath} \r\n git diff --no-index --binary {name1} {name2} > {migrateFilePath}");
-            int result = await RunScript("git", $"diff --ignore-blank-lines --no-index --binary {name1} {name2} --output={migrateFilePath}", rootPath);
+            int result = await RunScript("git", ["diff", "--ignore-blank-lines", "--no-index", "--binary", name1, name2, $"--output={migrateFilePath}"], rootPath, ct);
             if (result == 0)
             {
-                outPut.AddMessageLine("Error durring diff folder: No difference found ", "Red");
+                outPut.AddMessageLine("Diff folder: No difference found ", "Green");
                 return false;
             }
             else if (result == 1)
             {
                 // Replace a/{name1}/ by a/
-                await FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/", outPut);
-                await FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/", outPut);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"a/{name1}/", "a/", outPut, ct);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"a/{name2}/", "a/", outPut, ct);
 
-                await FileTransform.ReplaceInFile(migrateFilePath, $"rename from {name1}/", "rename from ", outPut);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"rename from {name1}/", "rename from ", outPut, ct);
 
                 // Replace b/{name2}/ by b/
-                await FileTransform.ReplaceInFile(migrateFilePath, $"b/{name2}/", "b/", outPut);
-                await FileTransform.ReplaceInFile(migrateFilePath, $"b/{name1}/", "b/", outPut);
-                await FileTransform.ReplaceInFile(migrateFilePath, $"rename to {name2}/", "rename to ", outPut);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"b/{name2}/", "b/", outPut, ct);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"b/{name1}/", "b/", outPut, ct);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"rename to {name2}/", "rename to ", outPut, ct);
 
-                await FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n", outPut);
+                await FileTransform.ReplaceInFile(migrateFilePath, $"\r\n", "\n", outPut, ct);
 
                 outPut.AddMessageLine("Diff folder finished", actionFinishedAtEnd ? "Green" : "Blue");
                 return true;
@@ -117,12 +114,13 @@
             }
         }
 
-        public async Task<bool> ApplyDiff(bool actionFinishedAtEnd, string projectPath, string migrateFilePath)
+        public async Task<bool> ApplyDiff(bool actionFinishedAtEnd, string projectPath, string migrateFilePath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             outPut.AddMessageLine($"Apply diff", "Pink");
             outPut.AddMessageLine($"On project : {projectPath}", "Pink");
             // cd "...\\YourProject" git apply --reject --whitespace=fix "3.2.2-3.3.0.patch" \
-            int result = await RunScript("git", $"apply --reject --unsafe-paths --whitespace=fix {migrateFilePath}", projectPath);
+            int result = await RunScript("git", ["apply", "--reject", "--unsafe-paths", "--whitespace=fix", migrateFilePath], projectPath, ct);
             if (result == 0)
             {
                 outPut.AddMessageLine("Apply diff finished !", actionFinishedAtEnd ? "Green" : "Blue");
@@ -149,47 +147,53 @@
 
         public class MergeParameter
         {
-            public string ProjectOriginPath { get; set; }
-            public string ProjectOriginVersion { get; set; }
-            public string ProjectTargetPath { get; set; }
-            public string ProjectTargetVersion { get; set; }
-            public string ProjectPath { get; set; }
-            public string MigrationPatchFilePath { get; set; }
+            public required string ProjectOriginPath { get; set; }
+            public required string ProjectOriginVersion { get; set; }
+            public required string ProjectTargetPath { get; set; }
+            public required string ProjectTargetVersion { get; set; }
+            public required string ProjectPath { get; set; }
+            public required string MigrationPatchFilePath { get; set; }
         }
 
-        public async Task MergeRejected(bool actionFinishedAtEnd, MergeParameter param)
+        public async Task MergeRejected(bool actionFinishedAtEnd, MergeParameter param, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             outPut.AddMessageLine($"Apply merge on rejected", "Pink");
 
-            await MergeRejectedDirectory(param.ProjectPath, param);
+            await MergeRejectedDirectory(param.ProjectPath, param, ct);
 
             outPut.AddMessageLine("Apply merge on rejected", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
         // Process all files in the directory passed in, recurse on any directories
         // that are found, and process the files they contain.
-        public async Task MergeRejectedDirectory(string targetDirectory, MergeParameter param)
+        public async Task MergeRejectedDirectory(string targetDirectory, MergeParameter param, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             // Process the list of files found in the directory.
             string[] fileEntries = Directory.GetFiles(targetDirectory, "*.rej");
             foreach (string fileName in fileEntries)
-                await MergeRejectedFileAsync(fileName, param);
+                await MergeRejectedFileAsync(fileName, param, ct);
 
             // Recurse into subdirectories of this directory.
             string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);
             foreach (string subdirectory in subdirectoryEntries)
-                await MergeRejectedDirectory(subdirectory, param);
+                await MergeRejectedDirectory(subdirectory, param, ct);
         }
 
         // Insert logic for processing found files here.
-        public async Task MergeRejectedFileAsync(string rejectedFilePath, MergeParameter param)
+        public async Task MergeRejectedFileAsync(string rejectedFilePath, MergeParameter param, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+            
             outPut.AddMessageLine("Merge rejected file '" + rejectedFilePath + "'.", "White");
 
-            var rejectedFileDiffInstruction = File.ReadAllLines(rejectedFilePath).First();
+            string rejectedFileDiffInstruction = File.ReadAllLines(rejectedFilePath).First();
             (string rejectedFileOriginalFileRelativePath, string rejectedFileTargetFileRelativePath) = ExtractOriginalAndFinalRelativePathOfDiffInstruction(rejectedFileDiffInstruction);
 
-            var migrationPatchFileDiffInstruction = File.ReadLines(param.MigrationPatchFilePath).FirstOrDefault(l => l.EndsWith(rejectedFileTargetFileRelativePath));
+            string migrationPatchFileDiffInstruction = File.ReadLines(param.MigrationPatchFilePath).FirstOrDefault(l => l.EndsWith(rejectedFileTargetFileRelativePath));
             (string migrationPatchFileOriginalFileRelativePath, string migrationPatchFileTargetFileRelativePath) = ExtractOriginalAndFinalRelativePathOfDiffInstruction(migrationPatchFileDiffInstruction);
 
             string finalProjectFile = rejectedFilePath[..^4];
@@ -202,11 +206,11 @@
             // git ls-files is case-sensitive: query the parent directory and match case-insensitively in C#
             string dirRelPath = Path.GetDirectoryName(rawRelPath)?.Replace('\\', '/') ?? string.Empty;
             string lsFilter = string.IsNullOrEmpty(dirRelPath) ? "." : dirRelPath;
-            var (lsExit, lsOut, _) = await RunCaptureAsync("git", $"ls-files -- \"{lsFilter}\"", workingDir: param.ProjectPath);
+            (int lsExit, string lsOut, string _) = await RunCaptureAsync("git", $"ls-files -- \"{lsFilter}\"", workingDir: param.ProjectPath);
             string trackedRelPath = rawRelPath;
             if (lsExit == 0 && !string.IsNullOrWhiteSpace(lsOut))
             {
-                var match = lsOut.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                string match = lsOut.Split('\n', StringSplitOptions.RemoveEmptyEntries)
                     .FirstOrDefault(f => string.Equals(f.Trim(), rawRelPath, StringComparison.OrdinalIgnoreCase));
                 if (match != null)
                     trackedRelPath = match.Trim();
@@ -254,8 +258,9 @@
             }
 
             int result = await RunScript("git",
-                $"merge-file -L Src -L {param.ProjectOriginVersion} -L {param.ProjectTargetVersion} " +
-                $"\"{finalProjectFile}\" \"{originalProjectFile}\" \"{targetProjectFile}\"");
+                ["merge-file", "-L", "Src", "-L", param.ProjectOriginVersion, "-L", param.ProjectTargetVersion,
+                 finalProjectFile, originalProjectFile, targetProjectFile],
+                ct: ct);
 
             if (result == 0)
             {
@@ -283,7 +288,7 @@
                 $"100644 {oursOid} 2\t{relPath}\n" +
                 $"100644 {theirsOid} 3\t{relPath}\n";
 
-            var (uExit, _, uErr) = await RunCaptureAsync("git", "update-index --add --index-info", workingDir: param.ProjectPath, stdin: indexInfo);
+            (int uExit, string _, string uErr) = await RunCaptureAsync("git", "update-index --add --index-info", workingDir: param.ProjectPath, stdin: indexInfo);
             if (uExit != 0)
             {
                 outPut.AddMessageLine($"git update-index has failed: {uErr}", "Red");
@@ -296,20 +301,20 @@
 
         static async Task EnsureBlobExistsAsync(string oid, string repoRoot)
         {
-            var (e, _, err) = await RunCaptureAsync("git", $"cat-file -e {oid}", workingDir: repoRoot);
+            (int e, string _, string err) = await RunCaptureAsync("git", $"cat-file -e {oid}", workingDir: repoRoot);
             if (e != 0) throw new InvalidOperationException($"Blob manquant {oid}: {err}");
         }
 
         static async Task<string> HashObjectAsync(string path, string repoRoot)
         {
-            var (e, outp, err) = await RunCaptureAsync("git", $"hash-object -w \"{path}\"", workingDir: repoRoot);
+            (int e, string outp, string err) = await RunCaptureAsync("git", $"hash-object -w \"{path}\"", workingDir: repoRoot);
             if (e != 0) throw new InvalidOperationException($"hash-object a échoué pour {path}: {err}");
-            var oid = outp.Trim();
+            string oid = outp.Trim();
             await EnsureBlobExistsAsync(oid, repoRoot);
             return oid;
         }
 
-        private (string OriginalRelativePath, string TargetRelativePath) ExtractOriginalAndFinalRelativePathOfDiffInstruction(string diffInstruction)
+        private static (string OriginalRelativePath, string TargetRelativePath) ExtractOriginalAndFinalRelativePathOfDiffInstruction(string diffInstruction)
         {
             if (string.IsNullOrEmpty(diffInstruction))
             {
@@ -317,7 +322,7 @@
             }
 
             string pattern = @"a/(?<Part1>[^\s]+)\s+b/(?<Part2>[^\s]+)";
-            var match = Regex.Match(diffInstruction, pattern);
+            Match match = Regex.Match(diffInstruction, pattern);
 
             if (match.Success)
             {
@@ -329,7 +334,7 @@
             return (string.Empty, string.Empty);
         }
 
-        static async Task<(int Exit, string Stdout, string Stderr)> RunCaptureAsync(string fileName, string args, string? workingDir = null, string? stdin = null)
+        static async Task<(int Exit, string Stdout, string Stderr)> RunCaptureAsync(string fileName, string args, string workingDir = null, string stdin = null)
         {
             var psi = new ProcessStartInfo(fileName, args)
             {
@@ -351,37 +356,73 @@
                 p.StandardInput.Close();
             }
 
-            var stdoutTask = p.StandardOutput.ReadToEndAsync();
-            var stderrTask = p.StandardError.ReadToEndAsync();
+            Task<string> stdoutTask = p.StandardOutput.ReadToEndAsync();
+            Task<string> stderrTask = p.StandardError.ReadToEndAsync();
             await Task.WhenAll(stdoutTask, stderrTask, p.WaitForExitAsync());
 
             return (p.ExitCode, stdoutTask.Result, stderrTask.Result);
         }
 
         // Spécifique Git: renvoie stdout.Trim() ou lève en cas d’erreur
-        static async Task<string> GitOutAsync(string args, string? stdin = null)
+        static async Task<string> GitOutAsync(string args, string stdin = null)
         {
-            var (exit, stdout, stderr) = await RunCaptureAsync("git", args, stdin: stdin);
+            (int exit, string stdout, string stderr) = await RunCaptureAsync("git", args, stdin: stdin);
             if (exit != 0)
                 throw new InvalidOperationException($"git {args} a échoué ({exit}): {stderr}");
             return stdout.Trim();
         }
 
         /// <summary>
-        /// Runs a PowerShell script with parameters and prints the resulting pipeline objects to the console output. 
+        /// Runs a process with a safe argument list (auto-escaped) and prints output to the console.
+        /// Prefer this overload when arguments contain user-provided values.
         /// </summary>
-        /// <param name="program">The program name.</param>
-        /// <param name="arguments">The argument.</param>
-        /// <param name="workingDirectory">The working directory.</param>
-        private async Task<int> RunScript(string program, string arguments, string workingDirectory = null)
+        private async Task<int> RunScript(string program, IEnumerable<string> argumentList, string workingDirectory = null, CancellationToken ct = default)
         {
-            //bool ret = true;
             try
             {
-                ProcessStartInfo startInfo = new ProcessStartInfo()
+                var startInfo = new ProcessStartInfo()
                 {
-                    FileName = program/*"git"*/,
-                    Arguments = arguments/*"pull"*/,
+                    FileName = program,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                foreach (var arg in argumentList)
+                    startInfo.ArgumentList.Add(arg);
+
+                if (workingDirectory != null)
+                    startInfo.WorkingDirectory = workingDirectory;
+
+                var process = new Process
+                {
+                    StartInfo = startInfo,
+                    EnableRaisingEvents = true
+                };
+
+                return await RunProcessAsync(process, ct).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                outPut.AddMessageLine("Error in RunScript", "Red");
+                outPut.AddMessageLine(e.Message, "Red");
+                if (e.InnerException != null) outPut.AddMessageLine(e.InnerException.Message, "Red");
+                if (e.StackTrace != null) outPut.AddMessageLine(e.StackTrace, "Red");
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Runs a process with a raw arguments string. Only use when arguments are fully controlled (no user input).
+        /// </summary>
+        private async Task<int> RunScript(string program, string arguments, string workingDirectory = null, CancellationToken ct = default)
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo()
+                {
+                    FileName = program,
+                    Arguments = arguments,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -389,7 +430,7 @@
                 };
                 if (workingDirectory != null)
                 {
-                    startInfo.WorkingDirectory = workingDirectory/*"C:\\Users\\L025308\\AppData\\Roaming\\BIA.ToolKit\\1.0.0.0\\BIATemplate\\Repo"*/;
+                    startInfo.WorkingDirectory = workingDirectory;
                 }
 
                 var process = new Process
@@ -398,7 +439,7 @@
                     EnableRaisingEvents = true
                 };
 
-                return await RunProcessAsync(process).ConfigureAwait(false);
+                return await RunProcessAsync(process, ct).ConfigureAwait(false);
                 /*
                 process.Start();
                 while (!process.StandardOutput.EndOfStream && !process.StandardError.EndOfStream)
@@ -438,11 +479,11 @@
             return -1;
         }
 
-        private Task<int> RunProcessAsync(Process process)
+        private Task<int> RunProcessAsync(Process process, CancellationToken ct)
         {
             var tcs = new TaskCompletionSource<int>();
 
-            process.Exited += (s, ea) => tcs.SetResult(process.ExitCode);
+            process.Exited += (s, ea) => tcs.TrySetResult(process.ExitCode);
             process.OutputDataReceived += (s, ea) =>
             {
                 if (!string.IsNullOrEmpty(ea.Data))
@@ -470,6 +511,26 @@
 
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+
+            if (ct.CanBeCanceled)
+            {
+                ct.Register(() =>
+                {
+                    try
+                    {
+                        if (!process.HasExited)
+                        {
+                            process.Kill(entireProcessTree: true);
+                        }
+                    }
+                    catch (InvalidOperationException) { /* process already exited between HasExited check and Kill call */ }
+                    catch (Exception ex)
+                    {
+                        outPut.AddMessageLine($"Error while killing process: {ex.Message}", "Red");
+                    }
+                    tcs.TrySetCanceled(ct);
+                });
+            }
 
             return tcs.Task;
         }

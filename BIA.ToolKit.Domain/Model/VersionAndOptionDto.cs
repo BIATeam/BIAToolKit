@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain.Model
+namespace BIA.ToolKit.Domain.Model
 {
     using BIA.ToolKit.Domain.Work;
     using System;
@@ -36,7 +36,7 @@
         /// <summary>
         /// Gets or sets the company file version.
         /// </summary>
-        public string CompanyFileVersion{ get; set; }
+        public string CompanyFileVersion { get; set; }
 
         /// <summary>
         /// Gets or sets the profile.
@@ -47,5 +47,25 @@
         /// Gets or sets the Options.
         /// </summary>
         public List<string> Options { get; set; }
+
+        /// <summary>
+        /// Indicates whether the default team should be created for the entity.
+        /// </summary>
+        public bool HasDefaultTeam { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default team name.
+        /// </summary>
+        public string DefaultTeamName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default team name plural.
+        /// </summary>
+        public string DefaultTeamNamePlural { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default team domain name.
+        /// </summary>
+        public string DefaultTeamDomainName { get; set; }
     }
 }

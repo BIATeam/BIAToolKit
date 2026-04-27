@@ -1,0 +1,42 @@
+{
+  "hooks": [
+    {
+      "id": "pre-task-validation",
+      "name": "Validation Pré-Implémentation",
+      "description": "Valide que la spec est complète avant de démarrer les tâches d'implémentation",
+      "eventType": "preTaskExecution",
+      "hookAction": "askAgent",
+      "outputPrompt": "En tant que Tech Lead, vérifie que la spec est complète et cohérente avant de démarrer l'implémentation. Valide l'architecture technique et identifie les risques potentiels.",
+      "why": "Valider l'architecture avant de commencer l'implémentation"
+    },
+    {
+      "id": "dotnet-expert-review",
+      "name": "Expert .NET - Review Code",
+      "description": "Review automatique quand Kiro modifie du code .NET",
+      "eventType": "postToolUse",
+      "toolTypes": "write",
+      "hookAction": "askAgent",
+      "outputPrompt": "En tant que développeur backend .NET 10, review les modifications de code .NET qui viennent d'être faites. Vérifie les best practices, la sécurité, et la performance. Si tout est OK, dis-le. Sinon, propose des améliorations.",
+      "why": "Review automatique du code .NET modifié par l'agent"
+    },
+    {
+      "id": "spec-manual-review",
+      "name": "Review Manuelle de Spec",
+      "description": "Lance une review quand tu cliques sur le bouton (évite les boucles infinies)",
+      "eventType": "userTriggered",
+      "hookAction": "askAgent",
+      "outputPrompt": "En tant que Spec Reviewer, analyse le fichier de spec ouvert et identifie les points à améliorer. Donne des suggestions claires et actionnables.",
+      "why": "Review manuelle des specs par l'équipe d'experts"
+    },
+    {
+      "id": "angular-expert-review",
+      "name": "Expert Angular - Review Code",
+      "description": "Review automatique quand Kiro modifie du code Angular/TypeScript",
+      "eventType": "postToolUse",
+      "toolTypes": "write",
+      "hookAction": "askAgent",
+      "outputPrompt": "En tant que développeur frontend Angular, review les modifications de code TypeScript/Angular qui viennent d'être faites. Vérifie les best practices Angular, la performance, et l'accessibilité. Si tout est OK, dis-le. Sinon, propose des améliorations.",
+      "why": "Review automatique du code Angular modifié par l'agent"
+    }
+  ]
+}

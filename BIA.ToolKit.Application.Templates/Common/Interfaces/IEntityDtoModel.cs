@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates.Common.Interfaces
+namespace BIA.ToolKit.Application.Templates.Common.Interfaces
 {
     using System.Collections.Generic;
 
@@ -20,5 +20,6 @@
         bool HasListAndItemModels { get; set; }
         List<TPropertyDtoModel> ListProperties { get; set; }
         IEnumerable<TPropertyDtoModel> ListPropertiesToGenerate { get; }
+        int TeamRoleId { get; set; }
     }
 }

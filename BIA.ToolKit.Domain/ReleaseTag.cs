@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain
+namespace BIA.ToolKit.Domain
 {
     using System;
     using System.Collections.Generic;
@@ -20,20 +20,27 @@
             await Task.Run(() =>
             {
 
-                var gitCopyFolder = LocalPath;
+                string gitCopyFolder = LocalPath;
                 if (!string.IsNullOrEmpty(repository.ReleasesTagContentFolder))
                 {
                     gitCopyFolder = Path.Combine(Path.GetDirectoryName(LocalPath), "temp");
                     CleanFolder(gitCopyFolder);
                 }
 
+                static Credentials credHandler(string url, string usernameFromUrl, SupportedCredentialTypes types) => new DefaultCredentials();
 
-                LibGit2Sharp.Repository.Clone(repository.LocalPath, gitCopyFolder);
+                var cloneOptions = new CloneOptions();
+                cloneOptions.FetchOptions.CredentialsProvider = credHandler;
+
+                LibGit2Sharp.Repository.Clone(repository.Url, gitCopyFolder, cloneOptions);
                 using (var gitRepository = new LibGit2Sharp.Repository(gitCopyFolder))
                 {
-                    var tag = gitRepository.Tags.FirstOrDefault(t => t.FriendlyName == Name)
+                    Remote remoteOrigin = gitRepository.Network.Remotes["origin"] ?? throw new NullReferenceException();
+                    IEnumerable<Reference> remoteRefs = gitRepository.Network.ListReferences(remoteOrigin, credHandler) ?? throw new Exception();
+
+                    Reference reference = remoteRefs.FirstOrDefault(r => r.CanonicalName.StartsWith("refs/tags/" + Name) && !r.CanonicalName.EndsWith("^{}"))
                         ?? throw new NotFoundException($"Tag {Name} not found in repository {repository.Name}");
-                    var commit = tag.Target.Peel<Commit>()
+                    string commit = reference.TargetIdentifier
                         ?? throw new NotFoundException($"Tag {Name} does not resolve to a commit.");
                     Commands.Checkout(gitRepository, commit);
                 }
@@ -53,7 +60,7 @@
             if (Directory.Exists(gitCopyFolder))
             {
                 var dirInfo = new DirectoryInfo(gitCopyFolder);
-                foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
                 {
                     file.Attributes = FileAttributes.Normal;
                     File.Delete(file.FullName);
@@ -67,7 +74,7 @@
         {
             Directory.CreateDirectory(destinationDir);
 
-            foreach (var file in Directory.GetFiles(sourceDir))
+            foreach (string file in Directory.GetFiles(sourceDir))
             {
                 string destFile = Path.Combine(destinationDir, Path.GetFileName(file));
                 File.Copy(file, destFile, overwrite: true);
@@ -75,7 +82,7 @@
 
             if (recursive)
             {
-                foreach (var subDir in Directory.GetDirectories(sourceDir))
+                foreach (string subDir in Directory.GetDirectories(sourceDir))
                 {
                     string destSubDir = Path.Combine(destinationDir, Path.GetFileName(subDir));
                     CopyDirectory(subDir, destSubDir, recursive);

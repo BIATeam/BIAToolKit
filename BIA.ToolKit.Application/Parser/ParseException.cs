@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace BIA.ToolKit.Application.Parser
@@ -10,6 +10,6 @@ namespace BIA.ToolKit.Application.Parser
             Errors.AddRange(errors);
         }
 
-        public List<string> Errors { get; } = new List<string>();
+        public List<string> Errors { get; } = [];
     }
 }

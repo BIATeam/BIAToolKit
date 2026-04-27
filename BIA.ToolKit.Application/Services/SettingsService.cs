@@ -1,29 +1,27 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Domain;
     using BIA.ToolKit.Domain.Settings;
+    using CommunityToolkit.Mvvm.Messaging;
     using System;
     using System.Collections.Generic;
     using System.Configuration;
     using System.Linq;
     using System.Xml.Linq;
 
-    public class SettingsService
+    /// <summary>
+    /// Owns the current <see cref="BIATKSettings"/> and delegates reading/writing
+    /// to an injected <see cref="ISettingsPersistence"/> so that the Application
+    /// layer remains unaware of any specific storage backend.
+    /// </summary>
+    public class SettingsService(IConsoleWriter consoleWriter, ISettingsPersistence persistence)
     {
-        private readonly IConsoleWriter consoleWriter;
-        private readonly UIEventBroker eventBroker;
+        private readonly IConsoleWriter consoleWriter = consoleWriter;
+        private readonly ISettingsPersistence persistence = persistence;
         private BIATKSettings settings = new();
         public IBIATKSettings Settings => settings;
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public SettingsService(IConsoleWriter consoleWriter, UIEventBroker eventBroker)
-        {
-            this.consoleWriter = consoleWriter;
-            this.eventBroker = eventBroker;
-        }
 
         /// <summary>
         /// Read App.config file and get value corresponding to "key".
@@ -42,10 +40,27 @@
             return result;
         }
 
-        public void Init(BIATKSettings settings)
+        /// <summary>
+        /// Loads settings from persistence and wires up repository interfaces.
+        /// The returned instance is the one the service will keep and broadcast.
+        /// Call <see cref="NotifyInitialized"/> once the caller has finished any
+        /// asynchronous post-load work to fire the initial update.
+        /// </summary>
+        public BIATKSettings Load()
         {
-            this.settings = settings;
-            eventBroker.NotifySettingsUpdated(settings);
+            settings = persistence.Load();
+            settings.InitRepositoriesInterfaces();
+            return settings;
+        }
+
+        /// <summary>
+        /// Broadcasts a <see cref="SettingsUpdatedMessage"/> for the currently
+        /// loaded settings. Intended to be called after <see cref="Load"/> and
+        /// any startup enrichment step (e.g. fetching repository releases).
+        /// </summary>
+        public void NotifyInitialized()
+        {
+            WeakReferenceMessenger.Default.Send(new SettingsUpdatedMessage(settings));
         }
 
         public void SetUseCompanyFiles(bool use)
@@ -56,6 +71,11 @@
         public void SetAutoUpdate(bool autoUpdate)
         {
             ExecuteAndNotifySettingsUpdated(() => settings.AutoUpdate = autoUpdate);
+        }
+
+        public void SetIsDarkTheme(bool isDark)
+        {
+            ExecuteAndNotifySettingsUpdated(() => settings.IsDarkTheme = isDark);
         }
 
         public void SetCreateProjectRootProjectPath(string path)
@@ -87,7 +107,7 @@
             ExecuteAndNotifySettingsUpdated(() =>
             {
                 settings.TemplateRepositories = repositories;
-                settings.TemplateRepositoriesConfig = repositories.Select(r => r.ToRepositoryConfig()).ToList();
+                settings.TemplateRepositoriesConfig = [.. repositories.Select(r => r.ToRepositoryConfig())];
             });
         }
 
@@ -96,14 +116,15 @@
             ExecuteAndNotifySettingsUpdated(() =>
             {
                 settings.CompanyFilesRepositories = repositories;
-                settings.CompanyFilesRepositoriesConfig = repositories.Select(r => r.ToRepositoryConfig()).ToList();
+                settings.CompanyFilesRepositoriesConfig = [.. repositories.Select(r => r.ToRepositoryConfig())];
             });
         }
 
         private void ExecuteAndNotifySettingsUpdated(Action action)
         {
             action.Invoke();
-            eventBroker.NotifySettingsUpdated(settings);
+            persistence.Save(settings);
+            WeakReferenceMessenger.Default.Send(new SettingsUpdatedMessage(settings));
         }
     }
 }

@@ -1,6 +1,7 @@
-﻿namespace BIA.ToolKit.Application.Services
+namespace BIA.ToolKit.Application.Services
 {
     using BIA.ToolKit.Application.Helper;
+    using System.Threading;
     using System.Threading.Tasks;
     using LibGit2Sharp;
     using System.IO;
@@ -13,18 +14,13 @@
     using System.Collections.Generic;
     using BIA.ToolKit.Domain;
 
-    public class RepositoryService
+    public class RepositoryService(IConsoleWriter outPut)
     {
-        private readonly IConsoleWriter outPut;
-
-        public RepositoryService(IConsoleWriter outPut)
-        {
-            this.outPut = outPut;
-        }
+        private readonly IConsoleWriter outPut = outPut;
 
         public bool CheckRepoFolder(Domain.IRepository repository)
         {
-            var localFolderExists = Directory.Exists(repository.LocalPath);
+            bool localFolderExists = Directory.Exists(repository.LocalPath);
             if (!localFolderExists && !repository.UseDownloadedReleases)
             {
                 outPut.AddMessageLine($"Local repository {repository.Name} not found at {repository.LocalPath}", "red");
@@ -47,7 +43,7 @@
                     {
                         var dirInfo = new DirectoryInfo(repository.LocalPath);
 
-                        foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                        foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
                         {
                             file.Attributes = FileAttributes.Normal;
                         }
@@ -83,16 +79,18 @@
             }
         }
 
-        public async Task<string> PrepareVersionFolder(Domain.IRepository repository, string version)
+        public async Task<string> PrepareVersionFolder(Domain.IRepository repository, string version, CancellationToken ct = default)
         {
             try
             {
-                var release = repository.Releases.FirstOrDefault(r => r.Name == version)
+                ct.ThrowIfCancellationRequested();
+
+                Release release = repository.Releases.FirstOrDefault(r => r.Name == version)
                         ?? throw new Exception($"Release {version} not found for repository {repository.Name}");
 
                 if (!release.IsDownloaded)
                 {
-                    await DownloadReleaseAsync(repository, release);
+                    await DownloadReleaseAsync(repository, release, ct);
                 }
 
                 return release.LocalPath;
@@ -104,32 +102,35 @@
             }
         }
 
-        private async Task DownloadReleaseAsync(Domain.IRepository repository, Release release)
+        private async Task DownloadReleaseAsync(Domain.IRepository repository, Release release, CancellationToken ct = default)
         {
             if (repository.UseDownloadedReleases)
                 return;
+
+            ct.ThrowIfCancellationRequested();
 
             outPut.AddMessageLine($"Downloading release {release.Name} of repository {repository.Name}...", "pink");
             await release.DownloadAsync();
             outPut.AddMessageLine($"Release {release.Name} of repository {repository.Name} downloaded", "green");
 
-            if (repository.RepositoryType == RepositoryType.Git 
-                && repository is RepositoryGit repositoryGit 
+            if (repository.RepositoryType == RepositoryType.Git
+                && repository is RepositoryGit repositoryGit
                 && repositoryGit.ReleaseType == ReleaseType.Git)
             {
-                await UnzipReleaseArchive(repository, release);
+                await UnzipReleaseArchive(repository, release, ct);
             }
-            else if (repository.RepositoryType == RepositoryType.Folder 
-                && Directory.EnumerateFiles(release.LocalPath, "*").Count() == 1 
+            else if (repository.RepositoryType == RepositoryType.Folder
+                && Directory.EnumerateFiles(release.LocalPath, "*").Count() == 1
                 && Directory.EnumerateFiles(release.LocalPath, "*.zip").Count() == 1)
             {
-                await UnzipReleaseArchive(repository, release);
+                await UnzipReleaseArchive(repository, release, ct);
             }
         }
 
-        private async Task UnzipReleaseArchive(Domain.IRepository repository, Release release)
+        private async Task UnzipReleaseArchive(Domain.IRepository repository, Release release, CancellationToken ct = default)
         {
-            var archivePath = Path.Combine(release.LocalPath, $"{release.Name}.zip");
+            ct.ThrowIfCancellationRequested();
+            string archivePath = Path.Combine(release.LocalPath, $"{release.Name}.zip");
             if (!File.Exists(archivePath))
             {
                 throw new FileNotFoundException(archivePath);
@@ -142,19 +143,19 @@
                 await FileTransform.FolderUnix2Dos(release.LocalPath);
                 File.Delete(archivePath);
 
-                var contentDirectories = Directory.GetDirectories(release.LocalPath, "*.*", SearchOption.TopDirectoryOnly);
+                string[] contentDirectories = Directory.GetDirectories(release.LocalPath, "*.*", SearchOption.TopDirectoryOnly);
                 if (contentDirectories.Length == 1)
                 {
-                    var contentDirectory = contentDirectories[0];
-                    foreach (var file in Directory.EnumerateFiles(contentDirectory, "*", SearchOption.AllDirectories))
+                    string contentDirectory = contentDirectories[0];
+                    foreach (string file in Directory.EnumerateFiles(contentDirectory, "*", SearchOption.AllDirectories))
                     {
-                        var dest = file.Replace(contentDirectory, release.LocalPath);
+                        string dest = file.Replace(contentDirectory, release.LocalPath);
                         Directory.CreateDirectory(Path.GetDirectoryName(dest));
                         File.Copy(file, dest);
                     }
                     Directory.Delete(contentDirectory, true);
                 }
-            });
+            }, ct);
             outPut.AddMessageLine($"{Path.GetFileName(archivePath)} of repository {repository.Name} unzipped", "green");
         }
     }

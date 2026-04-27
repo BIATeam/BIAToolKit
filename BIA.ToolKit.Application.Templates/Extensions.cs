@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Templates
+namespace BIA.ToolKit.Application.Templates
 {
     using System.Text.RegularExpressions;
     using Humanizer;

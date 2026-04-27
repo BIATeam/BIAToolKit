@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Domain
+namespace BIA.ToolKit.Domain
 {
     using System;
     using System.Collections.Generic;
@@ -7,6 +7,7 @@
     using System.Net.Http.Headers;
     using System.Text;
     using System.Text.RegularExpressions;
+    using System.Threading;
     using System.Threading.Tasks;
     using BIA.ToolKit.Domain.Settings;
     using LibGit2Sharp;
@@ -57,7 +58,7 @@
             };
         }
 
-        public static RepositoryGit CreateWithReleaseTypeGit (string name, RepositoryGitKind repositoryGitKind, string url, string gitRepositoryName, string owner, bool useLocalClonedFolder = false, string urlRelease = null, string companyName = null, string projectName = null, string localClonedFolderPath = null, bool useRepository = false, bool isVersionXYZ = false)
+        public static RepositoryGit CreateWithReleaseTypeGit(string name, RepositoryGitKind repositoryGitKind, string url, string gitRepositoryName, string owner, bool useLocalClonedFolder = false, string urlRelease = null, string companyName = null, string projectName = null, string localClonedFolderPath = null, bool useRepository = false, bool isVersionXYZ = false)
         {
             return new RepositoryGit(name, url, useLocalClonedFolder, ReleaseType.Git, companyName, projectName, localClonedFolderPath, useRepository, isVersionXYZ)
             {
@@ -76,8 +77,10 @@
             };
         }
 
-        public override async Task FillReleasesAsync()
+        public override async Task FillReleasesAsync(CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+            
             try
             {
                 UseDownloadedReleases = false;
@@ -119,13 +122,13 @@
         private async Task FillReleasesGithubAsync()
         {
             var github = new GitHubClient(new Octokit.ProductHeaderValue("BIAToolKit"));
-            var repositoryReleases = await github.Repository.Release.GetAll(Owner, GitRepositoryName);
+            IReadOnlyList<Octokit.Release> repositoryReleases = await github.Repository.Release.GetAll(Owner, GitRepositoryName);
 
             releases.Clear();
-            foreach (var release in repositoryReleases)
+            foreach (Octokit.Release release in repositoryReleases)
             {
                 var assets = new List<ReleaseGitAsset>();
-                var releaseArchive = $"{release.TagName}.zip";
+                string releaseArchive = $"{release.TagName}.zip";
 
                 if (release.Assets.Any())
                 {
@@ -152,7 +155,7 @@
             }
 
             var releasesFolderRegex = new Regex(ReleasesFolderRegexPattern);
-            var releases = Directory
+            IOrderedEnumerable<ReleaseFolder> releases = Directory
                 .EnumerateDirectories(LocalPath)
                 .Where(directoryPath => releasesFolderRegex.IsMatch(Path.GetFileName(directoryPath)))
                 .Select(directoryPath => new ReleaseFolder(Path.GetFileName(directoryPath), directoryPath, Name))

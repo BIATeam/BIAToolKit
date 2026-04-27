@@ -1,4 +1,4 @@
-﻿namespace BIA.ToolKit.Application.Services.FileGenerator.Contexts
+namespace BIA.ToolKit.Application.Services.FileGenerator.Contexts
 {
     using System;
     using System.Collections.Generic;
@@ -33,8 +33,8 @@
 
         public void ComputeAngularParentLocation(string projectFolder)
         {
-            var parentRelativePathSearchRootFolder = Path.Combine(projectFolder, AngularFront, @"src\app\features\");
-            var parentRelativePath = Directory.EnumerateDirectories(parentRelativePathSearchRootFolder, ParentNamePlural.ToKebabCase(), SearchOption.AllDirectories).SingleOrDefault();
+            string parentRelativePathSearchRootFolder = Path.Combine(projectFolder, AngularFront, @"src\app\features\");
+            string parentRelativePath = Directory.EnumerateDirectories(parentRelativePathSearchRootFolder, ParentNamePlural.ToKebabCase(), SearchOption.AllDirectories).SingleOrDefault();
             AngularParentFolderRelativePath = !string.IsNullOrWhiteSpace(parentRelativePath) ? parentRelativePath.Replace(parentRelativePathSearchRootFolder, string.Empty) : string.Empty;
             AngularParentChildrenFolderRelativePath = !string.IsNullOrWhiteSpace(AngularParentFolderRelativePath) ? Path.Combine(AngularParentFolderRelativePath, "children") : string.Empty;
             AngularDeepLevel = AngularParentChildrenFolderRelativePath.Split('\\').Length;

@@ -1,0 +1,134 @@
+<UserControl x:Class="BIA.ToolKit.UserControls.GenerateUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:Height="550" d:Width="1280">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+        <Style x:Key="HighlightedTabControl" TargetType="TabControl" BasedOn="{StaticResource {x:Type TabControl}}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Grid.Row="0"
+                                    Background="{DynamicResource MaterialDesign.Brush.Foreground}"
+                                    Opacity="0.18"
+                                    CornerRadius="4,4,0,0"/>
+                            <TabPanel Grid.Row="0"
+                                      x:Name="HeaderPanel"
+                                      IsItemsHost="True"
+                                      KeyboardNavigation.TabIndex="1"/>
+                            <ContentPresenter Grid.Row="1"
+                                              ContentSource="SelectedContent"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid x:Name="TabGenerate">
+        <Grid Margin="10,0,10,0">
+            <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2"/>
+            <TabControl x:Name="TabActions" IsEnabled="{Binding IsProjectSelected}">
+                <TabControl.Style>
+                    <Style TargetType="TabControl" BasedOn="{StaticResource HighlightedTabControl}">
+                        <Setter Property="Opacity" Value="1"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsProjectSelected}" Value="False">
+                                <Setter Property="Opacity" Value="0.35"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TabControl.Style>
+                <TabItem x:Name="TabDtoGenerator" IsEnabled="{Binding IsFileGeneratorServiceInit, Mode=OneWay}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Background="Transparent"
+                                    ToolTipService.InitialShowDelay="300"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Generates a DTO (Data Transfer Object) from an existing domain entity. Required before generating CRUD. Supports BIA attributes like [BiaDtoField] for field-level configuration.">
+                            <TextBlock Text="DTO" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="InformationOutline" Width="14" Height="14"
+                                                     Margin="6,0,0,0" Opacity="0.87" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Grid.ColumnSpan="2"/>
+                        <uc:DtoGeneratorUC x:Name="DtoGenerator" Margin="10"/>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="TabCrudGenerator" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Background="Transparent"
+                                    ToolTipService.InitialShowDelay="300"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Generates full CRUD operations (Controller, AppService, Mapper, Angular pages, NgRx Store, forms) from a DTO. Entry point to add a complete business feature end-to-end.">
+                            <TextBlock Text="CRUD" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="InformationOutline" Width="14" Height="14"
+                                                     Margin="6,0,0,0" Opacity="0.87" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Grid.ColumnSpan="2"/>
+                        <uc:CRUDGeneratorUC x:Name="CRUDGenerator" Margin="10"/>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="TabOptionGenerator" IsEnabled="{Binding IsProjectCompatibleCrudGenerator, Mode=OneWay}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Background="Transparent"
+                                    ToolTipService.InitialShowDelay="300"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Generates a lookup dropdown (Id + Display) for simple reference entities like Country, Language, Role. Used as an option to populate selects in CRUD forms.">
+                            <TextBlock Text="Option" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="InformationOutline" Width="14" Height="14"
+                                                     Margin="6,0,0,0" Opacity="0.87" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid>
+                        <Grid Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.2" Grid.ColumnSpan="2"/>
+                        <uc:OptionGeneratorUC x:Name="OptionGenerator" Margin="10" />
+                    </Grid>
+                </TabItem>
+            </TabControl>
+
+            <!-- Empty-state overlay: shown only when no project is selected -->
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                    BorderBrush="{DynamicResource MaterialDesign.Brush.Primary}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="32,24"
+                    IsHitTestVisible="False">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsProjectSelected}" Value="False">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                    <materialDesign:PackIcon Kind="FolderOpenOutline" Width="48" Height="48"
+                                             HorizontalAlignment="Center"
+                                             Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                    <TextBlock Text="Select a project to begin"
+                               FontSize="18" FontWeight="SemiBold"
+                               Margin="0,12,0,4"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Use the project selector above to choose a project to generate from."
+                               Style="{StaticResource Text.Caption}"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

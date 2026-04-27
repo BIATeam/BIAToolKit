@@ -1,0 +1,7 @@
+<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="$(T4Includes_8_0_0)\TemplateTeam.ttinclude" #>
+<#@ output extension=".cs" #>
+    // BIAToolKit - Begin Partial EntityDomainUsing <#= ModelInstance.DomainName #>
+    using <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Domain.<#= ModelInstance.DomainName #>.Entities;
+
+    // BIAToolKit - End Partial EntityDomainUsing <#= ModelInstance.DomainName #>
