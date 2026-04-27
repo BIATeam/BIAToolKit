@@ -398,6 +398,21 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             manifestsFiles.ForEach(m => _manifests.Add(JsonConvert.DeserializeObject<Manifest>(File.ReadAllText(m), jsonSerializersettings)));
         }
 
+        // Reports the number of installed template versions to the console.
+        // Must be called after the console writer's UI sink is initialized
+        // (i.e. after MainWindow's InitOutput); the ctor runs too early.
+        public void LogTemplatesStatus()
+        {
+            if (_manifests.Count == 0)
+            {
+                _consoleWriter.AddMessageLine("WARNING: no template versions found next to the executable. Code generation will be unavailable. The installation is likely corrupted - please reinstall or run the auto-update again.", "Red");
+                return;
+            }
+
+            var versions = string.Join(", ", _manifests.OrderBy(m => m.Version).Select(m => m.Version));
+            _consoleWriter.AddMessageLine($"{_manifests.Count} template version(s) available: {versions}", "Gray");
+        }
+
         private async Task GenerateTemplatesFromManifestFeatureAsync(Manifest.Feature manifestFeature, object model, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();

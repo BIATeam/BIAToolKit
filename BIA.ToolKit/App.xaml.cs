@@ -101,6 +101,7 @@ namespace BIA.ToolKit
 
             var mainWindow = host.Services.GetRequiredService<MainWindow>();
             mainWindow.Show();
+            GetService<FileGeneratorService>().LogTemplatesStatus();
             await mainWindow.Init();
         }
 

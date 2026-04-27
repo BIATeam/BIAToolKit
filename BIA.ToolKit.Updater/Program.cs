@@ -4,6 +4,7 @@ namespace BIA.ToolKit.Updater
     using System.Diagnostics;
     using System.IO.Compression;
     using System.Reflection;
+    using System.Text.RegularExpressions;
 
     internal class Program
     {
@@ -66,6 +67,19 @@ namespace BIA.ToolKit.Updater
             Console.WriteLine("[START BIATOOLKIT UPGRADE]");
 
             Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Validating update archive...");
+            if (!ValidateUpdateZipContainsTemplates(zipPath, out string? validationError))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Update aborted: {validationError}");
+                Console.WriteLine("Your current installation has been preserved (no files were modified).");
+                Console.WriteLine($"The downloaded archive is kept at: {zipPath}");
+                Console.WriteLine("Try the auto-update again, or download manually from https://github.com/BIATeam/BIAToolKit/releases");
+                Console.WriteLine("Press any key to stop...");
+                Console.ReadKey();
+                Environment.Exit(0);
+            }
+
             Console.WriteLine("Closing BIA.ToolKit instances...");
             CloseRunningApp();
 
@@ -153,6 +167,37 @@ namespace BIA.ToolKit.Updater
             {
                 process.Kill();
                 process.WaitForExit();
+            }
+        }
+
+        // Sanity check on the downloaded archive: a partially-downloaded or
+        // mis-built ZIP may extract without throwing yet leave the install
+        // unusable (template folders missing). Refuse to wipe the current
+        // install in that case.
+        static bool ValidateUpdateZipContainsTemplates(string zipPath, out string? error)
+        {
+            try
+            {
+                using ZipArchive archive = ZipFile.OpenRead(zipPath);
+                Regex templateEntry = new(@"(^|/)_\d+_\d+_\d+/Templates/", RegexOptions.IgnoreCase);
+                bool hasTemplates = archive.Entries.Any(e => templateEntry.IsMatch(e.FullName));
+                if (!hasTemplates)
+                {
+                    error = "the archive contains no template version folder (e.g. _8_0_0/Templates/) - it is incomplete or corrupted.";
+                    return false;
+                }
+                error = null;
+                return true;
+            }
+            catch (InvalidDataException ex)
+            {
+                error = $"the archive is not a valid ZIP file ({ex.Message}).";
+                return false;
+            }
+            catch (Exception ex)
+            {
+                error = $"could not read the archive ({ex.Message}).";
+                return false;
             }
         }
 
