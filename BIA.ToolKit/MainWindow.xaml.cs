@@ -242,18 +242,20 @@ namespace BIA.ToolKit
                 if (monitor != IntPtr.Zero)
                 {
                     var monitorInfo = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
-                    GetMonitorInfo(monitor, ref monitorInfo);
-                    var work = monitorInfo.rcWork;
-                    var monitorRect = monitorInfo.rcMonitor;
-                    mmi.ptMaxPosition.X = work.Left - monitorRect.Left;
-                    mmi.ptMaxPosition.Y = work.Top - monitorRect.Top;
-                    mmi.ptMaxSize.X = work.Right - work.Left;
-                    mmi.ptMaxSize.Y = work.Bottom - work.Top;
-                    // Also clamp the manual-resize tracking ceiling so a user
-                    // dragging a resize border cannot grow the window past the
-                    // work area before maximizing it.
-                    mmi.ptMaxTrackSize.X = work.Right - work.Left;
-                    mmi.ptMaxTrackSize.Y = work.Bottom - work.Top;
+                    if (GetMonitorInfo(monitor, ref monitorInfo))
+                    {
+                        var work = monitorInfo.rcWork;
+                        var monitorRect = monitorInfo.rcMonitor;
+                        // Constrain the maximize geometry only. Do NOT touch
+                        // ptMaxTrackSize: that controls the manual-resize
+                        // ceiling, and clamping it down to the work area
+                        // prevents the user from resizing the window at all
+                        // on certain DPI configurations.
+                        mmi.ptMaxPosition.X = work.Left - monitorRect.Left;
+                        mmi.ptMaxPosition.Y = work.Top - monitorRect.Top;
+                        mmi.ptMaxSize.X = work.Right - work.Left;
+                        mmi.ptMaxSize.Y = work.Bottom - work.Top;
+                    }
                 }
                 Marshal.StructureToPtr(mmi, lParam, true);
                 handled = true;
@@ -261,37 +263,37 @@ namespace BIA.ToolKit
             return IntPtr.Zero;
         }
 
-        // Backup constraint: WindowChrome + maximize sometimes lets the
-        // window extend past the work area on Per-Monitor DPI screens
-        // (the Win32 WM_GETMINMAXINFO clamp above can be ignored when
-        // the hook is attached too late, or when the monitor DPI differs
-        // from the system DPI). Doubling the constraint at the WPF layer
-        // via MaxWidth/MaxHeight (in DIPs of the current monitor) makes
-        // the fix DPI-aware and timing-independent.
+        // Post-fix at the Win32 level: when WindowChrome + maximize on a
+        // Per-Monitor DPI screen produces a window larger than the work
+        // area (because WM_GETMINMAXINFO values were ignored or scaled
+        // wrong), force the exact work area geometry via SetWindowPos.
+        // Operates in physical pixels and does not touch WPF Width/Height
+        // or MaxWidth/MaxHeight, so RestoreBounds and the un-maximize
+        // behavior are preserved.
         protected override void OnStateChanged(EventArgs e)
         {
             base.OnStateChanged(e);
+            if (WindowState != WindowState.Maximized)
+                return;
 
-            if (WindowState == WindowState.Maximized)
-            {
-                var handle = new WindowInteropHelper(this).Handle;
-                if (handle == IntPtr.Zero)
-                    return;
-                var monitor = MonitorFromWindow(handle, 2 /* MONITOR_DEFAULTTONEAREST */);
-                if (monitor == IntPtr.Zero)
-                    return;
-                var mi = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
-                if (!GetMonitorInfo(monitor, ref mi))
-                    return;
-                var dpi = VisualTreeHelper.GetDpi(this);
-                MaxWidth = (mi.rcWork.Right - mi.rcWork.Left) / dpi.DpiScaleX;
-                MaxHeight = (mi.rcWork.Bottom - mi.rcWork.Top) / dpi.DpiScaleY;
-            }
-            else
-            {
-                MaxWidth = double.PositiveInfinity;
-                MaxHeight = double.PositiveInfinity;
-            }
+            var handle = new WindowInteropHelper(this).Handle;
+            if (handle == IntPtr.Zero)
+                return;
+            var monitor = MonitorFromWindow(handle, 2 /* MONITOR_DEFAULTTONEAREST */);
+            if (monitor == IntPtr.Zero)
+                return;
+            var mi = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+            if (!GetMonitorInfo(monitor, ref mi))
+                return;
+
+            SetWindowPos(
+                handle,
+                IntPtr.Zero,
+                mi.rcWork.Left,
+                mi.rcWork.Top,
+                mi.rcWork.Right - mi.rcWork.Left,
+                mi.rcWork.Bottom - mi.rcWork.Top,
+                /* SWP_NOZORDER | SWP_NOACTIVATE */ 0x0004 | 0x0010);
         }
 
         [DllImport("user32.dll")]
@@ -299,6 +301,10 @@ namespace BIA.ToolKit
 
         [DllImport("user32.dll")]
         private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
+            int X, int Y, int cx, int cy, uint uFlags);
 
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT { public int X, Y; }
