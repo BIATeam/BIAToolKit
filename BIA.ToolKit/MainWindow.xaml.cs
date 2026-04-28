@@ -249,11 +249,49 @@ namespace BIA.ToolKit
                     mmi.ptMaxPosition.Y = work.Top - monitorRect.Top;
                     mmi.ptMaxSize.X = work.Right - work.Left;
                     mmi.ptMaxSize.Y = work.Bottom - work.Top;
+                    // Also clamp the manual-resize tracking ceiling so a user
+                    // dragging a resize border cannot grow the window past the
+                    // work area before maximizing it.
+                    mmi.ptMaxTrackSize.X = work.Right - work.Left;
+                    mmi.ptMaxTrackSize.Y = work.Bottom - work.Top;
                 }
                 Marshal.StructureToPtr(mmi, lParam, true);
                 handled = true;
             }
             return IntPtr.Zero;
+        }
+
+        // Backup constraint: WindowChrome + maximize sometimes lets the
+        // window extend past the work area on Per-Monitor DPI screens
+        // (the Win32 WM_GETMINMAXINFO clamp above can be ignored when
+        // the hook is attached too late, or when the monitor DPI differs
+        // from the system DPI). Doubling the constraint at the WPF layer
+        // via MaxWidth/MaxHeight (in DIPs of the current monitor) makes
+        // the fix DPI-aware and timing-independent.
+        protected override void OnStateChanged(EventArgs e)
+        {
+            base.OnStateChanged(e);
+
+            if (WindowState == WindowState.Maximized)
+            {
+                var handle = new WindowInteropHelper(this).Handle;
+                if (handle == IntPtr.Zero)
+                    return;
+                var monitor = MonitorFromWindow(handle, 2 /* MONITOR_DEFAULTTONEAREST */);
+                if (monitor == IntPtr.Zero)
+                    return;
+                var mi = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+                if (!GetMonitorInfo(monitor, ref mi))
+                    return;
+                var dpi = VisualTreeHelper.GetDpi(this);
+                MaxWidth = (mi.rcWork.Right - mi.rcWork.Left) / dpi.DpiScaleX;
+                MaxHeight = (mi.rcWork.Bottom - mi.rcWork.Top) / dpi.DpiScaleY;
+            }
+            else
+            {
+                MaxWidth = double.PositiveInfinity;
+                MaxHeight = double.PositiveInfinity;
+            }
         }
 
         [DllImport("user32.dll")]
