@@ -242,18 +242,20 @@ namespace BIA.ToolKit
                 if (monitor != IntPtr.Zero)
                 {
                     var monitorInfo = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
-                    GetMonitorInfo(monitor, ref monitorInfo);
-                    var work = monitorInfo.rcWork;
-                    var monitorRect = monitorInfo.rcMonitor;
-                    mmi.ptMaxPosition.X = work.Left - monitorRect.Left;
-                    mmi.ptMaxPosition.Y = work.Top - monitorRect.Top;
-                    mmi.ptMaxSize.X = work.Right - work.Left;
-                    mmi.ptMaxSize.Y = work.Bottom - work.Top;
-                    // Also clamp the manual-resize tracking ceiling so a user
-                    // dragging a resize border cannot grow the window past the
-                    // work area before maximizing it.
-                    mmi.ptMaxTrackSize.X = work.Right - work.Left;
-                    mmi.ptMaxTrackSize.Y = work.Bottom - work.Top;
+                    if (GetMonitorInfo(monitor, ref monitorInfo))
+                    {
+                        var work = monitorInfo.rcWork;
+                        var monitorRect = monitorInfo.rcMonitor;
+                        // Constrain the maximize geometry only. Do NOT touch
+                        // ptMaxTrackSize: that controls the manual-resize
+                        // ceiling, and clamping it down to the work area
+                        // prevents the user from resizing the window at all
+                        // on certain DPI configurations.
+                        mmi.ptMaxPosition.X = work.Left - monitorRect.Left;
+                        mmi.ptMaxPosition.Y = work.Top - monitorRect.Top;
+                        mmi.ptMaxSize.X = work.Right - work.Left;
+                        mmi.ptMaxSize.Y = work.Bottom - work.Top;
+                    }
                 }
                 Marshal.StructureToPtr(mmi, lParam, true);
                 handled = true;
