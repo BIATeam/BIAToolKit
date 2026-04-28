@@ -261,11 +261,48 @@ namespace BIA.ToolKit
             return IntPtr.Zero;
         }
 
+        // Post-fix at the Win32 level: when WindowChrome + maximize on a
+        // Per-Monitor DPI screen produces a window larger than the work
+        // area (because WM_GETMINMAXINFO values were ignored or scaled
+        // wrong), force the exact work area geometry via SetWindowPos.
+        // Operates in physical pixels and does not touch WPF Width/Height
+        // or MaxWidth/MaxHeight, so RestoreBounds and the un-maximize
+        // behavior are preserved.
+        protected override void OnStateChanged(EventArgs e)
+        {
+            base.OnStateChanged(e);
+            if (WindowState != WindowState.Maximized)
+                return;
+
+            var handle = new WindowInteropHelper(this).Handle;
+            if (handle == IntPtr.Zero)
+                return;
+            var monitor = MonitorFromWindow(handle, 2 /* MONITOR_DEFAULTTONEAREST */);
+            if (monitor == IntPtr.Zero)
+                return;
+            var mi = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+            if (!GetMonitorInfo(monitor, ref mi))
+                return;
+
+            SetWindowPos(
+                handle,
+                IntPtr.Zero,
+                mi.rcWork.Left,
+                mi.rcWork.Top,
+                mi.rcWork.Right - mi.rcWork.Left,
+                mi.rcWork.Bottom - mi.rcWork.Top,
+                /* SWP_NOZORDER | SWP_NOACTIVATE */ 0x0004 | 0x0010);
+        }
+
         [DllImport("user32.dll")]
         private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
 
         [DllImport("user32.dll")]
         private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
+            int X, int Y, int cx, int cy, uint uFlags);
 
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT { public int X, Y; }
