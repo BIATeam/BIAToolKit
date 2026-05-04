@@ -1,6 +1,7 @@
 <#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_8_0_0)\TemplateOption.ttinclude" #>
 <#@ output extension=".cs" #>
+<# var optionDtoType = ModelInstance.BaseKeyType == "int" ? "OptionDto" : $"TOptionDto<{ModelInstance.BaseKeyType}>"; #>
 // <copyright file="<#= ModelInstance.EntityName #>OptionMapper.cs" company="<#= ModelInstance.CompanyName #>">
 // Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
@@ -17,12 +18,12 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Doma
     /// <summary>
     /// The mapper used for <#= ModelInstance.EntityName.ToLiteral() #> option.
     /// </summary>
-    public class <#= ModelInstance.EntityName #>OptionMapper : BaseMapper<OptionDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>>
+    public class <#= ModelInstance.EntityName #>OptionMapper : BaseMapper<<#= optionDtoType #>, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>>
     {
         /// <inheritdoc />
-        public override Expression<Func<<#= ModelInstance.EntityName #>, OptionDto>> EntityToDto()
+        public override Expression<Func<<#= ModelInstance.EntityName #>, <#= optionDtoType #>>> EntityToDto()
         {
-            return base.EntityToDto().CombineMapping(entity => new OptionDto
+            return base.EntityToDto().CombineMapping(entity => new <#= optionDtoType #>
             {
                 Display = entity.<#= ModelInstance.OptionDisplayName #>,
             });

@@ -64,7 +64,50 @@ namespace BIA.ToolKit.ViewModels
                         AngularFronts = new List<string> { Constants.FolderAngular }
                     },
                     ct: ct);
+
+                await TryFixUsingsAfterCreate(projectPath, ct);
             });
+        }
+
+        /// <summary>
+        /// Resolves missing using statements in the freshly-created project (CS0103 errors
+        /// like 'BiaPermissionId does not exist' that the BIA template can introduce).
+        /// Best-effort: failures here do not invalidate the creation — the user can always
+        /// run the manual "Fix Usings" button on the Modify Project tab.
+        /// </summary>
+        private async Task TryFixUsingsAfterCreate(string projectPath, System.Threading.CancellationToken ct)
+        {
+            try
+            {
+                string slnPath = Directory
+                    .EnumerateFiles(projectPath, "*.sln", SearchOption.AllDirectories)
+                    .FirstOrDefault();
+
+                if (string.IsNullOrEmpty(slnPath))
+                {
+                    consoleWriter.AddMessageLine(
+                        "Skipping post-creation Fix Usings: no .sln found in the new project.",
+                        "orange");
+                    return;
+                }
+
+                consoleWriter.AddMessageLine(
+                    "Resolving missing usings on the freshly-created project (this can take a few minutes)...",
+                    "pink");
+
+                await cSharpParserService.LoadSolution(slnPath, ct);
+                await cSharpParserService.FixUsings(ct);
+            }
+            catch (System.OperationCanceledException)
+            {
+                throw;
+            }
+            catch (System.Exception ex)
+            {
+                consoleWriter.AddMessageLine(
+                    $"Post-creation Fix Usings failed ({ex.Message}). Run it manually from Modify Project > 6 - Fix Usings.",
+                    "orange");
+            }
         }
 
         private static bool IsDirectoryEmpty(string path)

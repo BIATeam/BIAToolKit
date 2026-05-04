@@ -1,5 +1,5 @@
 <#@ template debug="true" hostspecific="true" language="C#" #>
-<#@ include file="$(T4Includes_8_0_0)\TemplateCrud.ttinclude" #>
+<#@ include file="$(T4Includes_8_0_0)\TemplateDto.ttinclude" #>
 <#@ output extension=".cs" #>
 <# if(ModelInstance.IsTeam) { #>
         // BIAToolKit - Begin Partial RoleId <#= ModelInstance.EntityName #>
