@@ -1,6 +1,7 @@
 <#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_8_0_0)\TemplateOption.ttinclude" #>
 <#@ output extension=".cs" #>
+<# var optionDtoType = ModelInstance.BaseKeyType == "int" ? "OptionDto" : $"TOptionDto<{ModelInstance.BaseKeyType}>"; #>
 // <copyright file="I<#= ModelInstance.EntityName #>OptionAppService.cs" company="<#= ModelInstance.CompanyName #>">
 // Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
@@ -13,7 +14,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     /// <summary>
     /// The interface defining the application service for <#= ModelInstance.EntityName.ToLiteral() #> option.
     /// </summary>
-    public interface I<#= ModelInstance.EntityName #>OptionAppService : IOptionAppServiceBase<OptionDto, <#= ModelInstance.BaseKeyType #>>
+    public interface I<#= ModelInstance.EntityName #>OptionAppService : IOptionAppServiceBase<<#= optionDtoType #>, <#= ModelInstance.BaseKeyType #>>
     {
     }
 }

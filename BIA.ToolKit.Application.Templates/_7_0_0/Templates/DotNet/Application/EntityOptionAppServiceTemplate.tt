@@ -1,6 +1,7 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="$(T4Includes_7_0_0)\TemplateOption.ttinclude" #>
 <#@ output extension=".cs" #>
+<# var optionDtoType = ModelInstance.BaseKeyType == "int" ? "OptionDto" : $"TOptionDto<{ModelInstance.BaseKeyType}>"; #>
 // <copyright file="<#= ModelInstance.EntityName #>OptionAppService.cs" company="<#= ModelInstance.CompanyName #>">
 // Copyright (c) <#= ModelInstance.CompanyName #>. All rights reserved.
 // </copyright>
@@ -16,7 +17,7 @@ namespace <#= ModelInstance.CompanyName #>.<#= ModelInstance.ProjectName #>.Appl
     /// <summary>
     /// The application service used for <#= ModelInstance.EntityName.ToLiteral() #> option.
     /// </summary>
-    public class <#= ModelInstance.EntityName #>OptionAppService : OptionAppServiceBase<OptionDto, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, <#= ModelInstance.EntityName #>OptionMapper>, I<#= ModelInstance.EntityName #>OptionAppService
+    public class <#= ModelInstance.EntityName #>OptionAppService : OptionAppServiceBase<<#= optionDtoType #>, <#= ModelInstance.EntityName #>, <#= ModelInstance.BaseKeyType #>, <#= ModelInstance.EntityName #>OptionMapper>, I<#= ModelInstance.EntityName #>OptionAppService
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="<#= ModelInstance.EntityName #>OptionAppService"/> class.

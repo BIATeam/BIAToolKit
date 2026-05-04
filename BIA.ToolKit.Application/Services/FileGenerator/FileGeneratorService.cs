@@ -551,6 +551,8 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
 
         public async Task RunPrettierAsync(string path, CancellationToken ct)
         {
+            const int timeoutSeconds = 180;
+
             var process = new Process();
             process.StartInfo.WorkingDirectory = _prettierAngularProjectPath;
             process.StartInfo.FileName = "cmd.exe";
@@ -558,13 +560,34 @@ namespace BIA.ToolKit.Application.Services.FileGenerator
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
 
+            await _prettierSemaphore.WaitAsync(ct);
             try
             {
-                await _prettierSemaphore.WaitAsync(ct);
                 _consoleWriter.AddMessageLine($"Prettier {path}...", "gray");
                 process.Start();
-                await process.WaitForExitAsync(ct);
-                _consoleWriter.AddMessageLine($"Prettier succeed for {path} !", "lightgreen");
+
+                // Combine the external cancellation with a per-call timeout so a stuck
+                // npx/node process can never block the generation pipeline indefinitely.
+                using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
+
+                // Kill the whole process tree when cancelled — WaitForExitAsync(ct) only
+                // throws OCE but leaves the underlying cmd/npx/node processes alive.
+                using var killRegistration = linkedCts.Token.Register(() =>
+                {
+                    try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
+                    catch { /* process may have already exited */ }
+                });
+
+                try
+                {
+                    await process.WaitForExitAsync(linkedCts.Token);
+                    _consoleWriter.AddMessageLine($"Prettier succeed for {path} !", "lightgreen");
+                }
+                catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !ct.IsCancellationRequested)
+                {
+                    _consoleWriter.AddMessageLine($"Prettier timeout ({timeoutSeconds}s) for {path}", "orange");
+                }
             }
             catch (Exception ex)
             {

@@ -7,6 +7,7 @@ namespace BIA.ToolKit.ViewModels
     using BIA.ToolKit.Application.Services.FileGenerator;
     using BIA.ToolKit.Application.Services.FileGenerator.Contexts;
     using BIA.ToolKit.Application.Settings;
+    using BIA.ToolKit.Common;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
     using CommunityToolkit.Mvvm.Messaging;
@@ -14,13 +15,13 @@ namespace BIA.ToolKit.ViewModels
     using BIA.ToolKit.Domain.ModifyProject;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator;
     using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.FeatureData;
+    using BIA.ToolKit.Domain.ModifyProject.CRUDGenerator.Settings;
     using Humanizer;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
-    using System.Text.Json;
     using System.Threading.Tasks;
 
     public partial class OptionGeneratorViewModel : ObservableObject, IDisposable,
@@ -33,9 +34,9 @@ namespace BIA.ToolKit.ViewModels
         private readonly ZipParserService zipService;
         private readonly GenerateCrudService crudService;
         private readonly SettingsService settingsService;
+        private readonly GenerationHistoryService historyService;
         private bool disposed;
-        private OptionGenerationInfo optionHistory;
-        private string optionHistoryFileName;
+        private OptionGeneration optionGeneration;
 
         /// <summary>
         /// Constructor with dependency injection.
@@ -46,7 +47,8 @@ namespace BIA.ToolKit.ViewModels
             IConsoleWriter consoleWriter,
             ZipParserService zipService,
             GenerateCrudService crudService,
-            SettingsService settingsService)
+            SettingsService settingsService,
+            GenerationHistoryService historyService)
         {
             this.parserService = parserService ?? throw new ArgumentNullException(nameof(parserService));
             this.fileGeneratorService = fileGeneratorService ?? throw new ArgumentNullException(nameof(fileGeneratorService));
@@ -54,6 +56,7 @@ namespace BIA.ToolKit.ViewModels
             this.zipService = zipService ?? throw new ArgumentNullException(nameof(zipService));
             this.crudService = crudService ?? throw new ArgumentNullException(nameof(crudService));
             this.settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+            this.historyService = historyService ?? throw new ArgumentNullException(nameof(historyService));
 
             ZipFeatureTypeList = [];
             Entities = [];
@@ -193,7 +196,10 @@ namespace BIA.ToolKit.ViewModels
                         GenerateBack = true,
                         GenerateFront = !string.IsNullOrWhiteSpace(BiaFront),
                         UseHubForClient = UseHubClient,
-                        BaseKeyType = "int" // Options typically use int as key type
+                        // BaseKeyType is the SOURCE entity's primary key type (Guid / int / long / string),
+                        // not the OptionDto key type which is always int. It flows into
+                        // OptionAppServiceBase<OptionDto, Entity, TKey, …> and BaseMapper<OptionDto, Entity, TKey>.
+                        BaseKeyType = Entity.BaseKeyType ?? "int",
                     });
 
                     UpdateOptionGenerationHistory();
@@ -209,23 +215,26 @@ namespace BIA.ToolKit.ViewModels
         {
             WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage((ct) =>
             {
-                if (optionHistory == null || string.IsNullOrEmpty(optionHistoryFileName))
+                if (CurrentProject == null || Entity == null)
                 {
-                    consoleWriter.AddMessageLine("No generation history found.", "Yellow");
+                    consoleWriter.AddMessageLine("No project or entity selected.", "Yellow");
                     return Task.CompletedTask;
                 }
 
                 try
                 {
-                    // Note: DeleteLastGeneration for options is not fully implemented in GenerateCrudService
-                    // For now, just delete the history file
-                    if (File.Exists(optionHistoryFileName))
+                    optionGeneration ??= historyService.LoadOptionHistory(CurrentProject) ?? new OptionGeneration();
+                    OptionGenerationHistory entry = optionGeneration.OptionGenerationHistory
+                        .FirstOrDefault(h => string.Equals(h.EntityNameSingular, Entity.Name, StringComparison.OrdinalIgnoreCase));
+                    if (entry == null)
                     {
-                        File.Delete(optionHistoryFileName);
+                        consoleWriter.AddMessageLine($"No generation history found for {Entity.Name}.", "Yellow");
+                        return Task.CompletedTask;
                     }
-                    optionHistory = null;
-                    optionHistoryFileName = null;
-                    consoleWriter.AddMessageLine("Last generation history deleted.", "Green");
+
+                    optionGeneration.OptionGenerationHistory.Remove(entry);
+                    historyService.SaveOptionHistory(CurrentProject, optionGeneration);
+                    consoleWriter.AddMessageLine($"Generation history removed for {Entity.Name}.", "Green");
                 }
                 catch (Exception ex)
                 {
@@ -353,42 +362,27 @@ namespace BIA.ToolKit.ViewModels
             }
         }
 
-        private async Task ParseEntityFileAsync()
+        private Task ParseEntityFileAsync()
         {
             if (Entity == null || CurrentProject == null)
-                return;
+                return Task.CompletedTask;
 
             try
             {
-                var entityFilePath = Entity.Path;
-                var parsedEntity = await Task.Run(() => parserService.ParseClassFile(entityFilePath));
+                // Use Entity.Properties — populated via Roslyn symbols (CSharpParserService.GetClassesInfoFromProject)
+                // which include inherited members. Re-parsing the file would only see declared members.
+                var displayItems = Entity.Properties
+                    .Where(p => (p.Type == "string" || p.Type == "string?") && !p.Name.EndsWith("Id"))
+                    .Select(p => p.Name)
+                    .ToList();
 
-                if (parsedEntity != null)
-                {
-                    // Extract display items (string properties) from PropertyList
-                    var displayItems = new List<string>();
-                    foreach (var prop in parsedEntity.PropertyList)
-                    {
-                        var propType = prop.Type.ToString();
-                        var propName = prop.Identifier.Text;
+                EntityDisplayItems = new ObservableCollection<string>(displayItems);
+                EntityDisplayItemSelected = displayItems.FirstOrDefault();
 
-                        if (propType == "string" && !propName.EndsWith("Id"))
-                        {
-                            displayItems.Add(propName);
-                        }
-                    }
+                EntityNamePlural = Entity.Name.Pluralize();
+                UpdateDomainPreSelection();
 
-                    EntityDisplayItems = new ObservableCollection<string>(displayItems);
-                    EntityDisplayItemSelected = displayItems.FirstOrDefault();
-
-                    // Auto-fill EntityNamePlural
-                    EntityNamePlural = Entity.Name.Pluralize();
-
-                    // Auto-fill Domain from namespace
-                    UpdateDomainPreSelection();
-
-                    IsEntityParsed = true;
-                }
+                IsEntityParsed = true;
             }
             catch (Exception ex)
             {
@@ -396,23 +390,21 @@ namespace BIA.ToolKit.ViewModels
                 consoleWriter.AddMessageLine($"Error parsing entity file: {ex.Message}", "Red");
                 IsEntityParsed = false;
             }
+
+            return Task.CompletedTask;
         }
 
         private void UpdateDomainPreSelection()
         {
-            if (Entity == null)
-            {
-                Domain = null;
-                return;
-            }
+            Domain = null;
 
-            if (!string.IsNullOrWhiteSpace(Domain))
+            if (Entity == null)
             {
                 return;
             }
 
             var namespaceParts = Entity.Namespace.Split('.').ToList();
-            var domainIndex = namespaceParts.IndexOf("Dto");
+            var domainIndex = namespaceParts.IndexOf("Domain");
             if (domainIndex != -1 && domainIndex + 1 < namespaceParts.Count)
             {
                 Domain = namespaceParts[domainIndex + 1];
@@ -426,21 +418,54 @@ namespace BIA.ToolKit.ViewModels
 
             try
             {
-                var historyFolder = Path.Combine(CurrentProject.Folder, ".bia", "History");
-                if (!Directory.Exists(historyFolder))
-                    return;
+                MigrateLegacyOptionHistoryFileIfPresent();
+                WarnAboutLegacyPerEntityHistoryFiles();
 
-                var historyFiles = Directory.GetFiles(historyFolder, "Option_*.json");
-                if (historyFiles.Length > 0)
-                {
-                    optionHistoryFileName = historyFiles.OrderByDescending(f => File.GetLastWriteTime(f)).First();
-                    var json = File.ReadAllText(optionHistoryFileName);
-                    optionHistory = JsonSerializer.Deserialize<OptionGenerationInfo>(json);
-                }
+                optionGeneration = historyService.LoadOptionHistory(CurrentProject);
             }
             catch (Exception ex)
             {
                 consoleWriter.AddMessageLine($"Error loading option generation history: {ex.Message}", "Yellow");
+            }
+        }
+
+        /// <summary>
+        /// Mirrors <c>CRUDGeneratorViewModel.SetGenerationSettings</c> behavior: if a legacy
+        /// <c>OptionGeneration.json</c> file lives at the project root (older toolkit versions),
+        /// move it under <c>.bia/</c> so the current pipeline finds it.
+        /// </summary>
+        private void MigrateLegacyOptionHistoryFileIfPresent()
+        {
+            string targetPath = historyService.GetOptionHistoryFilePath(CurrentProject);
+            string legacyRootPath = Path.Combine(CurrentProject.Folder, Path.GetFileName(targetPath));
+            if (File.Exists(legacyRootPath) && !File.Exists(targetPath))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
+                File.Move(legacyRootPath, targetPath);
+            }
+        }
+
+        /// <summary>
+        /// Earlier V2.11.x builds wrote one <c>Option_&lt;Entity&gt;_&lt;timestamp&gt;.json</c>
+        /// per generation in <c>.bia/History/</c>. Those files contain only EntityName/Domain/Date
+        /// and cannot drive the regenerate-features migration. We do not delete them (keep user
+        /// data intact) but emit a one-time warning so the dev knows to regenerate options through
+        /// the new flow if they need migration support.
+        /// </summary>
+        private void WarnAboutLegacyPerEntityHistoryFiles()
+        {
+            string legacyFolder = Path.Combine(CurrentProject.Folder, Constants.FolderBia, "History");
+            if (!Directory.Exists(legacyFolder))
+                return;
+
+            string[] legacyFiles = Directory.GetFiles(legacyFolder, "Option_*.json");
+            if (legacyFiles.Length > 0)
+            {
+                consoleWriter.AddMessageLine(
+                    $"Detected {legacyFiles.Length} legacy option history file(s) in '.bia/History/'. " +
+                    "These are ignored by the new pipeline; regenerate the options to populate the consolidated " +
+                    $"'{Path.GetFileName(historyService.GetOptionHistoryFilePath(CurrentProject))}' used by feature migration.",
+                    "Orange");
             }
         }
 
@@ -451,19 +476,53 @@ namespace BIA.ToolKit.ViewModels
 
             try
             {
-                var historyFolder = Path.Combine(CurrentProject.Folder, ".bia", "History");
-                Directory.CreateDirectory(historyFolder);
+                optionGeneration ??= historyService.LoadOptionHistory(CurrentProject) ?? new OptionGeneration();
 
-                optionHistory = new OptionGenerationInfo
+                OptionGenerationHistory entry = new()
                 {
-                    EntityName = Entity.Name,
+                    Date = DateTime.Now,
+                    EntityNameSingular = Entity.Name,
+                    EntityNamePlural = EntityNamePlural,
+                    FrameworkVersion = CurrentProject.FrameworkVersion,
+                    DisplayItem = EntityDisplayItemSelected,
                     Domain = Domain,
-                    GeneratedDate = DateTime.Now
+                    BiaFront = BiaFront,
+                    UseHubClient = UseHubClient,
+                    EntityNamespace = Entity.Namespace,
+                    Mapping = new EntityMapping
+                    {
+                        Entity = Entity.Name,
+                        Type = "DotNet",
+                    },
                 };
 
-                optionHistoryFileName = Path.Combine(historyFolder, $"Option_{Entity.Name}_{DateTime.Now:yyyyMMddHHmmss}.json");
-                var json = JsonSerializer.Serialize(optionHistory, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(optionHistoryFileName, json);
+                entry.Generation.Add(new Generation
+                {
+                    FeatureType = FeatureType.Option.ToString(),
+                    GenerationType = GenerationType.WebApi.ToString(),
+                    Type = "DotNet",
+                    Folder = Constants.FolderDotNet,
+                });
+                if (!string.IsNullOrWhiteSpace(BiaFront))
+                {
+                    entry.Generation.Add(new Generation
+                    {
+                        FeatureType = FeatureType.Option.ToString(),
+                        GenerationType = GenerationType.Front.ToString(),
+                        Type = "Angular",
+                        Folder = BiaFront,
+                    });
+                }
+
+                OptionGenerationHistory existing = optionGeneration.OptionGenerationHistory
+                    .FirstOrDefault(h => string.Equals(h.EntityNameSingular, entry.EntityNameSingular, StringComparison.OrdinalIgnoreCase));
+                if (existing != null)
+                {
+                    optionGeneration.OptionGenerationHistory.Remove(existing);
+                }
+                optionGeneration.OptionGenerationHistory.Add(entry);
+
+                historyService.SaveOptionHistory(CurrentProject, optionGeneration);
             }
             catch (Exception ex)
             {
@@ -472,16 +531,5 @@ namespace BIA.ToolKit.ViewModels
         }
 
         #endregion
-    }
-
-    /// <summary>
-    /// Helper class for option generation history (local to ViewModel).
-    /// Named to avoid collision with Domain's OptionGeneration.
-    /// </summary>
-    public class OptionGenerationInfo
-    {
-        public string EntityName { get; set; }
-        public string Domain { get; set; }
-        public DateTime GeneratedDate { get; set; }
     }
 }
