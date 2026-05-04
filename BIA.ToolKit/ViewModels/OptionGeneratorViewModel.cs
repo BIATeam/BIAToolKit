@@ -400,19 +400,15 @@ namespace BIA.ToolKit.ViewModels
 
         private void UpdateDomainPreSelection()
         {
-            if (Entity == null)
-            {
-                Domain = null;
-                return;
-            }
+            Domain = null;
 
-            if (!string.IsNullOrWhiteSpace(Domain))
+            if (Entity == null)
             {
                 return;
             }
 
             var namespaceParts = Entity.Namespace.Split('.').ToList();
-            var domainIndex = namespaceParts.IndexOf("Dto");
+            var domainIndex = namespaceParts.IndexOf("Domain");
             if (domainIndex != -1 && domainIndex + 1 < namespaceParts.Count)
             {
                 Domain = namespaceParts[domainIndex + 1];
