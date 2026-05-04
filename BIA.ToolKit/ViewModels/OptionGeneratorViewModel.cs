@@ -193,7 +193,10 @@ namespace BIA.ToolKit.ViewModels
                         GenerateBack = true,
                         GenerateFront = !string.IsNullOrWhiteSpace(BiaFront),
                         UseHubForClient = UseHubClient,
-                        BaseKeyType = "int" // Options typically use int as key type
+                        // BaseKeyType is the SOURCE entity's primary key type (Guid / int / long / string),
+                        // not the OptionDto key type which is always int. It flows into
+                        // OptionAppServiceBase<OptionDto, Entity, TKey, …> and BaseMapper<OptionDto, Entity, TKey>.
+                        BaseKeyType = Entity.BaseKeyType ?? "int",
                     });
 
                     UpdateOptionGenerationHistory();
