@@ -353,42 +353,27 @@ namespace BIA.ToolKit.ViewModels
             }
         }
 
-        private async Task ParseEntityFileAsync()
+        private Task ParseEntityFileAsync()
         {
             if (Entity == null || CurrentProject == null)
-                return;
+                return Task.CompletedTask;
 
             try
             {
-                var entityFilePath = Entity.Path;
-                var parsedEntity = await Task.Run(() => parserService.ParseClassFile(entityFilePath));
+                // Use Entity.Properties — populated via Roslyn symbols (CSharpParserService.GetClassesInfoFromProject)
+                // which include inherited members. Re-parsing the file would only see declared members.
+                var displayItems = Entity.Properties
+                    .Where(p => (p.Type == "string" || p.Type == "string?") && !p.Name.EndsWith("Id"))
+                    .Select(p => p.Name)
+                    .ToList();
 
-                if (parsedEntity != null)
-                {
-                    // Extract display items (string properties) from PropertyList
-                    var displayItems = new List<string>();
-                    foreach (var prop in parsedEntity.PropertyList)
-                    {
-                        var propType = prop.Type.ToString();
-                        var propName = prop.Identifier.Text;
+                EntityDisplayItems = new ObservableCollection<string>(displayItems);
+                EntityDisplayItemSelected = displayItems.FirstOrDefault();
 
-                        if (propType == "string" && !propName.EndsWith("Id"))
-                        {
-                            displayItems.Add(propName);
-                        }
-                    }
+                EntityNamePlural = Entity.Name.Pluralize();
+                UpdateDomainPreSelection();
 
-                    EntityDisplayItems = new ObservableCollection<string>(displayItems);
-                    EntityDisplayItemSelected = displayItems.FirstOrDefault();
-
-                    // Auto-fill EntityNamePlural
-                    EntityNamePlural = Entity.Name.Pluralize();
-
-                    // Auto-fill Domain from namespace
-                    UpdateDomainPreSelection();
-
-                    IsEntityParsed = true;
-                }
+                IsEntityParsed = true;
             }
             catch (Exception ex)
             {
@@ -396,6 +381,8 @@ namespace BIA.ToolKit.ViewModels
                 consoleWriter.AddMessageLine($"Error parsing entity file: {ex.Message}", "Red");
                 IsEntityParsed = false;
             }
+
+            return Task.CompletedTask;
         }
 
         private void UpdateDomainPreSelection()
