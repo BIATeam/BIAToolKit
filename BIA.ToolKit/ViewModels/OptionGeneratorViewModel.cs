@@ -200,7 +200,7 @@ namespace BIA.ToolKit.ViewModels
                         // not the OptionDto key type which is always int. It flows into
                         // OptionAppServiceBase<OptionDto, Entity, TKey, …> and BaseMapper<OptionDto, Entity, TKey>.
                         BaseKeyType = Entity.BaseKeyType ?? "int",
-                    });
+                    }, ct);
 
                     UpdateOptionGenerationHistory();
                     return;

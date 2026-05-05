@@ -187,7 +187,7 @@ namespace BIA.ToolKit.ViewModels
                 WorkCompanyFile.VersionFolderPath = await repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version, ct);
                 string fileName = Path.Combine(WorkCompanyFile.VersionFolderPath, "biaCompanyFiles.json");
 
-                string jsonString = await Task.Run(() => File.ReadAllText(fileName));
+                string jsonString = await Task.Run(() => File.ReadAllText(fileName), ct);
 
                 CFSettings cfSetting = JsonSerializer.Deserialize<CFSettings>(jsonString);
 
@@ -697,7 +697,7 @@ namespace BIA.ToolKit.ViewModels
             WorkTemplate = WorkTemplates.FirstOrDefault(workTemplate => workTemplate.Version == $"V{version}");
         }
 
-        public async Task SetCurrentProjectPathAsync(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion, IEnumerable<FeatureSetting> originFeatureSettings = null)
+        public async Task SetCurrentProjectPathAsync(string path, bool mapCompanyFileVersion, bool mapFrameworkVersion, IEnumerable<FeatureSetting> originFeatureSettings = null, CancellationToken ct = default)
         {
             this.currentProjectPath = path;
 
@@ -711,7 +711,7 @@ namespace BIA.ToolKit.ViewModels
             // its feature settings. The XAML SelectionChanged EventTrigger normally handles this
             // for user-driven version changes, but when InitVersionAndOptionComponents calls us
             // programmatically that path races with us — so we await it here explicitly.
-            await this.FillVersionFolderPathAsync();
+            await this.FillVersionFolderPathAsync(ct);
 
             this.LoadfeatureSetting();
             this.LoadVersionAndOption(mapCompanyFileVersion, mapFrameworkVersion);
@@ -776,7 +776,7 @@ namespace BIA.ToolKit.ViewModels
             FeatureSettings = featureSettingViewModels;
         }
 
-        public async Task FillVersionFolderPathAsync()
+        public async Task FillVersionFolderPathAsync(CancellationToken ct = default)
         {
             if (WorkTemplate?.Repository != null)
             {
@@ -786,7 +786,7 @@ namespace BIA.ToolKit.ViewModels
                 }
                 else
                 {
-                    WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(WorkTemplate.Repository, WorkTemplate.Version);
+                    WorkTemplate.VersionFolderPath = await this.repositoryService.PrepareVersionFolder(WorkTemplate.Repository, WorkTemplate.Version, ct);
                 }
             }
         }
@@ -797,7 +797,7 @@ namespace BIA.ToolKit.ViewModels
         {
             WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
-                await this.FillVersionFolderPathAsync();
+                await this.FillVersionFolderPathAsync(ct);
                 this.LoadfeatureSetting();
                 this.LoadVersionAndOption(false, false);
                 if (OriginFeatureSettings is null)
