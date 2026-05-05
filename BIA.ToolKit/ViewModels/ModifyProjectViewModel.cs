@@ -220,7 +220,7 @@
 
             MigratePreparePath(out _, out var projectOriginPath, out _, out _, out var projectTargetPath, out _);
 
-            await GenerateProjectsAsync(true, projectOriginPath, projectTargetPath);
+            await GenerateProjectsAsync(true, projectOriginPath, projectTargetPath, ct);
 
             CanOpenFolder = true;
             CanApplyDiff = true;
@@ -247,10 +247,10 @@
 
             if (OverwriteBIAFromOriginal == true)
             {
-                await projectCreatorService.OverwriteBIAFolder(projectOriginPath, ModifyProject.CurrentProject.Folder, false);
+                await projectCreatorService.OverwriteBIAFolder(projectOriginPath, ModifyProject.CurrentProject.Folder, false, ct);
             }
 
-            result = await ApplyDiffAsync(true, projectOriginalFolderName, projectTargetFolderName);
+            result = await ApplyDiffAsync(true, projectOriginalFolderName, projectTargetFolderName, ct);
 
             CanMergeRejected = true;
             return result;
@@ -264,7 +264,7 @@
 
         private async Task MigrateMergeRejectedRunAsync(CancellationToken ct = default)
         {
-            await MergeRejectedAsync(true);
+            await MergeRejectedAsync(true, ct);
 
             CanMergeRejected = false;
 
@@ -326,25 +326,25 @@
             projectTargetPath = AppSettings.TmpFolderPath + projectTargetFolderName;
         }
 
-        private async Task GenerateProjectsAsync(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath)
+        private async Task GenerateProjectsAsync(bool actionFinishedAtEnd, string projectOriginPath, string projectTargetPath, CancellationToken ct = default)
         {
             if (Directory.Exists(projectOriginPath))
             {
-                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath));
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath), ct);
             }
 
-            await CreateProjectAsync(false, CompanyName, Name, projectOriginPath, OriginVersionAndOptionVM, CurrentProject.BIAFronts);
+            await CreateProjectAsync(false, CompanyName, Name, projectOriginPath, OriginVersionAndOptionVM, CurrentProject.BIAFronts, ct);
 
             if (Directory.Exists(projectTargetPath))
             {
-                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectTargetPath));
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectTargetPath), ct);
             }
-            await CreateProjectAsync(false, CompanyName, Name, projectTargetPath, TargetVersionAndOptionVM, CurrentProject.BIAFronts);
+            await CreateProjectAsync(false, CompanyName, Name, projectTargetPath, TargetVersionAndOptionVM, CurrentProject.BIAFronts, ct);
 
             consoleWriter.AddMessageLine("Generate projects finished.", actionFinishedAtEnd ? "Green" : "Blue");
         }
 
-        private async Task CreateProjectAsync(bool actionFinishedAtEnd, string companyName, string projectName, string projectPath, VersionAndOptionViewModel versionAndOptionVM, List<string> fronts)
+        private async Task CreateProjectAsync(bool actionFinishedAtEnd, string companyName, string projectName, string projectPath, VersionAndOptionViewModel versionAndOptionVM, List<string> fronts, CancellationToken ct = default)
         {
             await projectCreatorService.Create(
                 actionFinishedAtEnd,
@@ -355,29 +355,30 @@
                     ProjectName = projectName,
                     VersionAndOption = versionAndOptionVM.VersionAndOption,
                     AngularFronts = fronts
-                }
+                },
+                ct: ct
             );
         }
 
-        private async Task<bool> ApplyDiffAsync(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName)
+        private async Task<bool> ApplyDiffAsync(bool actionFinishedAtEnd, string projectOriginalFolderName, string projectTargetFolderName, CancellationToken ct = default)
         {
             string migrateFilePath = GenerateMigrationPatchFilePath(projectOriginalFolderName, projectTargetFolderName);
-            if (!await gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath))
+            if (!await gitService.DiffFolder(false, AppSettings.TmpFolderPath, projectOriginalFolderName, projectTargetFolderName, migrateFilePath, ct))
             {
                 return false;
             }
-            if (!await gitService.ApplyDiff(actionFinishedAtEnd, ModifyProject.CurrentProject.Folder, migrateFilePath))
+            if (!await gitService.ApplyDiff(actionFinishedAtEnd, ModifyProject.CurrentProject.Folder, migrateFilePath, ct))
             {
                 return false;
             }
 
-            await HandleDeletedFilesFailedAsync(ModifyProject.CurrentProject, migrateFilePath, projectOriginalFolderName, projectTargetFolderName);
+            await HandleDeletedFilesFailedAsync(ModifyProject.CurrentProject, migrateFilePath, projectOriginalFolderName, projectTargetFolderName, ct);
             return true;
         }
 
-        private async Task HandleDeletedFilesFailedAsync(Project currentProject, string migrateFilePath, string projectOriginalFolder, string projectTargetFolder)
+        private async Task HandleDeletedFilesFailedAsync(Project currentProject, string migrateFilePath, string projectOriginalFolder, string projectTargetFolder, CancellationToken ct = default)
         {
-            var migrateFileContent = (await File.ReadAllLinesAsync(migrateFilePath)).ToList();
+            var migrateFileContent = (await File.ReadAllLinesAsync(migrateFilePath, ct)).ToList();
             var deleteFileInstructionIndexes = new List<int>();
             for (int i = 0; i < migrateFileContent.Count; i++)
             {
@@ -419,7 +420,7 @@
             }
         }
 
-        private async Task MergeRejectedAsync(bool actionFinishedAtEnd)
+        private async Task MergeRejectedAsync(bool actionFinishedAtEnd, CancellationToken ct = default)
         {
             MigratePreparePath(out var projectOriginalFolderName, out var projectOriginPath, out var projectOriginalVersion, out var projectTargetFolderName, out var projectTargetPath, out var projectTargetVersion);
 
@@ -431,7 +432,7 @@
                 ProjectTargetPath = projectTargetPath,
                 ProjectTargetVersion = projectTargetVersion,
                 MigrationPatchFilePath = GenerateMigrationPatchFilePath(projectOriginalFolderName, projectTargetFolderName)
-            });
+            }, ct);
         }
 
         private static string GenerateMigrationPatchFilePath(string projectOriginalFolderName, string projectTargetFolderName)
@@ -443,7 +444,7 @@
         {
             ct.ThrowIfCancellationRequested();
             MigratePreparePath(out _, out _, out _, out _, out var projectTargetPath, out _);
-            await projectCreatorService.OverwriteBIAFolder(projectTargetPath, ModifyProject.CurrentProject.Folder, actionFinishedAtEnd);
+            await projectCreatorService.OverwriteBIAFolder(projectTargetPath, ModifyProject.CurrentProject.Folder, actionFinishedAtEnd, ct);
         }
 
         private static bool IsDirectoryEmpty(string path)
