@@ -697,7 +697,7 @@ namespace BIA.ToolKit.ViewModels
                         IsArchivable = IsArchivable,
                         DisplayHistorical = DisplayHistorical,
                         UseDomainUrl = UseDomainUrl,
-                    });
+                    }, ct);
 
                     UpdateCrudGenerationHistory();
                     WeakReferenceMessenger.Default.Send(new EntityGenerationCompletedMessage());

@@ -401,7 +401,7 @@ namespace BIA.ToolKit.ViewModels
                     HasAncestorTeam = !string.IsNullOrEmpty(AncestorTeam),
                     GenerateBack = true,
                     HasAudit = UseDedicatedAudit
-                });
+                }, ct);
 
                 WeakReferenceMessenger.Default.Send(new EntityGenerationCompletedMessage());
             }));
