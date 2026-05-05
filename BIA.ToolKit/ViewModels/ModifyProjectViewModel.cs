@@ -168,7 +168,7 @@
                 if (OriginVersionAndOptionVM is not null)
                 {
                     OriginVersionAndOptionVM.SelectVersion(CurrentProject?.FrameworkVersion);
-                    await OriginVersionAndOptionVM.SetCurrentProjectPathAsync(CurrentProject?.Folder, true, true);
+                    await OriginVersionAndOptionVM.SetCurrentProjectPathAsync(CurrentProject?.Folder, true, true, ct: ct);
                 }
 
                 if (TargetVersionAndOptionVM is not null)
@@ -176,7 +176,7 @@
                     var originFeatures = CurrentProject is null
                         ? null
                         : OriginVersionAndOptionVM?.FeatureSettings.Select(x => x.FeatureSetting);
-                    await TargetVersionAndOptionVM.SetCurrentProjectPathAsync(CurrentProject?.Folder, false, false, originFeatures);
+                    await TargetVersionAndOptionVM.SetCurrentProjectPathAsync(CurrentProject?.Folder, false, false, originFeatures, ct);
                 }
             }));
         }
