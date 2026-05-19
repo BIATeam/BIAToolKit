@@ -180,7 +180,7 @@ namespace BIA.ToolKit.Updater
             {
                 using ZipArchive archive = ZipFile.OpenRead(zipPath);
                 Regex templateEntry = new(@"(^|/)_\d+_\d+_\d+/Templates/", RegexOptions.IgnoreCase);
-                bool hasTemplates = archive.Entries.Any(e => templateEntry.IsMatch(e.FullName));
+                bool hasTemplates = archive.Entries.Any(e => templateEntry.IsMatch(e.FullName.Replace('\\', '/')));
                 if (!hasTemplates)
                 {
                     error = "the archive contains no template version folder (e.g. _8_0_0/Templates/) - it is incomplete or corrupted.";
