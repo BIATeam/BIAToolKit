@@ -538,14 +538,19 @@
         </Grid>
 
         <!-- Waiter overlay: dim covers content only (output stays readable),
-             loader stays centered across the full window (content + output). -->
+             loader stays centered across the full window (content + output).
+             The Waiter Grid stays hit-testable so the Annuler PixelStopButtonUC
+             actually receives clicks — WPF stops hit-test traversal at any
+             ancestor with IsHitTestVisible=False, so we cannot mark Waiter
+             False and expect children to be clickable. The loader explicitly
+             opts out of hit testing so it does not steal the click area. -->
         <Grid x:Name="WaiterDim" Grid.Row="1" IsHitTestVisible="{Binding IsBusy}"
               Background="{DynamicResource MaterialDesign.Brush.Card.Background}" Opacity="0.7"
               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Hidden"/>
-        <Grid x:Name="Waiter" Grid.Row="1" Grid.RowSpan="2" IsHitTestVisible="False"
+        <Grid x:Name="Waiter" Grid.Row="1" Grid.RowSpan="2"
               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}" d:Visibility="Hidden">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="True">
-                <uc:PixelLeafLoaderUC Height="200" Width="200"/>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <uc:PixelLeafLoaderUC Height="200" Width="200" IsHitTestVisible="False"/>
                 <uc:PixelStopButtonUC Width="160" Height="50" Margin="0,40,0,0"
                                       Command="{Binding StopActionCommand}"/>
             </StackPanel>
