@@ -166,6 +166,10 @@ namespace BIA.ToolKit.ViewModels
                 }
                 BiaFront = BiaFronts.FirstOrDefault();
             }
+            // IsBIAFrontSelectorVisible depends on BiaFronts.Count, which an ObservableCollection
+            // does not announce as a property change — notify explicitly so the XAML visibility
+            // binding refreshes after the collection is repopulated.
+            OnPropertyChanged(nameof(IsBIAFrontSelectorVisible));
         }
 
         [ObservableProperty]
@@ -860,6 +864,7 @@ namespace BIA.ToolKit.ViewModels
             FeatureNameSelected = null;
             BiaFronts.Clear();
             BiaFront = null;
+            OnPropertyChanged(nameof(IsBIAFrontSelectorVisible));
             IsTeam = false;
             DisplayHistorical = false;
             UseDomainUrl = false;
