@@ -491,14 +491,14 @@
         {
             if (Directory.Exists(projectOriginPath))
             {
-                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath), ct);
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectOriginPath, ct), ct);
             }
 
             await CreateProjectAsync(false, CompanyName, Name, projectOriginPath, OriginVersionAndOptionVM, CurrentProject.BIAFronts, ct);
 
             if (Directory.Exists(projectTargetPath))
             {
-                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectTargetPath), ct);
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(projectTargetPath, ct), ct);
             }
             await CreateProjectAsync(false, CompanyName, Name, projectTargetPath, TargetVersionAndOptionVM, CurrentProject.BIAFronts, ct);
 

@@ -119,7 +119,7 @@ namespace BIA.ToolKit.Application.Services
             }
 
             consoleWriter.AddMessageLine("Start copy template files.", "Pink");
-            await Task.Run(() => FileTransform.CopyFilesRecursively(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath, projectPath, "", localFilesToExcludes, foldersToExcludes), cancellationToken);
+            await Task.Run(() => FileTransform.CopyFilesRecursively(projectParameters.VersionAndOption.WorkTemplate.VersionFolderPath, projectPath, "", localFilesToExcludes, foldersToExcludes, cancellationToken), cancellationToken);
 
             IList<string> filesToRemove = ["^new-angular-project\\.ps1$", "BiaToolKit_FeatureSetting\\.json"];
 
@@ -156,12 +156,12 @@ namespace BIA.ToolKit.Application.Services
                     }
                 }
                 consoleWriter.AddMessageLine("Start copy company files.", "Pink");
-                await Task.Run(() => FileTransform.CopyFilesRecursively(projectParameters.VersionAndOption.WorkCompanyFile.VersionFolderPath, projectPath, projectParameters.VersionAndOption.Profile, filesToExclude, foldersToExcludes), cancellationToken);
+                await Task.Run(() => FileTransform.CopyFilesRecursively(projectParameters.VersionAndOption.WorkCompanyFile.VersionFolderPath, projectPath, projectParameters.VersionAndOption.Profile, filesToExclude, foldersToExcludes, cancellationToken), cancellationToken);
             }
 
             if (filesToRemove.Count > 0)
             {
-                await Task.Run(() => FileTransform.RemoveRecursively(projectPath, filesToRemove), cancellationToken);
+                await Task.Run(() => FileTransform.RemoveRecursively(projectPath, filesToRemove, cancellationToken), cancellationToken);
             }
 
             await Task.Run(() => CleanProject(projectPath, projectParameters.VersionAndOption, featureSettings), cancellationToken);

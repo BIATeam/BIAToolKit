@@ -104,7 +104,7 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
             string masterFolderName = $"{currentProject.Name}_RegenerateFeatures";
             string masterFolderPath = Path.Combine(AppSettings.TmpFolderPath, masterFolderName);
             if (Directory.Exists(masterFolderPath))
-                await Task.Run(() => FileTransform.ForceDeleteDirectory(masterFolderPath), ct);
+                await Task.Run(() => FileTransform.ForceDeleteDirectory(masterFolderPath, ct), ct);
             Directory.CreateDirectory(masterFolderPath);
 
             // Group features by FROM version so each version pair shares the same FROM/TO projects.
