@@ -15,6 +15,7 @@
     using CommunityToolkit.Mvvm.Messaging;
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
@@ -62,6 +63,16 @@
             OverwriteBIAFromOriginal = true;
 
             WeakReferenceMessenger.Default.RegisterAll(this);
+
+            Steps = new ObservableCollection<MigrationStep>
+            {
+                new(1, "Generate Only",       MigrateGenerateOnlyCommand),
+                new(2, "Open Folder",         MigrateOpenFolderCommand),
+                new(3, "Apply Diff",          MigrateApplyDiffCommand),
+                new(4, "Merge Rejected",      MigrateMergeRejectedCommand),
+                new(5, "Overwrite \\BIA-.*",  MigrateOverwriteBIAFolderCommand),
+                new(6, "Fix Usings",          FixUsingsCommand),
+            };
         }
 
         public void Dispose()
@@ -115,6 +126,38 @@
             CanOpenFolder = false;
             CanApplyDiff = false;
             CanMergeRejected = false;
+            if (Steps is null) return;          // Receive() can fire before ctor body completes
+            foreach (var s in Steps) s.Reset();
+        }
+
+        // --- Migration steps (V2.14.0 stepper) ---
+
+        /// <summary>
+        /// The six steps backing the <c>MigrationStepperUC</c>. Order matters:
+        /// each step's downstream peers are reset to Pending when it is
+        /// (re-)executed via <see cref="ResetStepsFrom(int)"/>.
+        /// </summary>
+        public ObservableCollection<MigrationStep> Steps { get; }
+
+        private MigrationStep Step(int n) => Steps[n - 1];
+
+        /// <summary>
+        /// Resets the status of every step strictly after <paramref name="number"/>
+        /// to <see cref="MigrationStepStatus.Pending"/>. Called when a step is
+        /// (re-)triggered so the visual chain reflects the new starting point.
+        /// </summary>
+        private void ResetStepsFrom(int number)
+        {
+            foreach (var s in Steps.Where(s => s.Number > number))
+                s.Reset();
+        }
+
+        // Used by ConsoleWriter.RefreshStepColors to resolve a step's current
+        // status when re-rendering output stripes.
+        private MigrationStepStatus? StepStatusResolver(int number)
+        {
+            if (Steps is null || number < 1 || number > Steps.Count) return null;
+            return Steps[number - 1].Status;
         }
 
         // --- Core properties ---
@@ -207,30 +250,73 @@
 
         private async Task<int> MigrateGenerateOnlyRunAsync(CancellationToken ct = default)
         {
-            if (ModifyProject.CurrentProject == null)
+            var step = Step(1);
+            step.Status = MigrationStepStatus.Running;
+            ResetStepsFrom(1);
+            using var stepScope = consoleWriter.BeginStep(1, step.Label);
+            try
             {
-                consoleWriter.AddMessageLine("Select a project before click migrate.", "red");
-                return -1;
+                if (ModifyProject.CurrentProject == null)
+                {
+                    consoleWriter.AddMessageLine("Select a project before click migrate.", "red");
+                    step.Status = MigrationStepStatus.Failed;
+                    step.LastMessage = "No project selected";
+                    consoleWriter.RefreshStepColors(StepStatusResolver);
+                    return -1;
+                }
+                if (!Directory.Exists(ModifyProject.CurrentProject.Folder) || IsDirectoryEmpty(ModifyProject.CurrentProject.Folder))
+                {
+                    consoleWriter.AddMessageLine("The project path is empty : " + ModifyProject.CurrentProject.Folder, "red");
+                    step.Status = MigrationStepStatus.Failed;
+                    step.LastMessage = "Project path is empty";
+                    consoleWriter.RefreshStepColors(StepStatusResolver);
+                    return -1;
+                }
+
+                MigratePreparePath(out _, out var projectOriginPath, out _, out _, out var projectTargetPath, out _);
+
+                await GenerateProjectsAsync(true, projectOriginPath, projectTargetPath, ct);
+
+                CanOpenFolder = true;
+                CanApplyDiff = true;
+
+                step.Status = MigrationStepStatus.Done;
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+                return 0;
             }
-            if (!Directory.Exists(ModifyProject.CurrentProject.Folder) || IsDirectoryEmpty(ModifyProject.CurrentProject.Folder))
+            catch (OperationCanceledException)
             {
-                consoleWriter.AddMessageLine("The project path is empty : " + ModifyProject.CurrentProject.Folder, "red");
-                return -1;
+                step.Status = MigrationStepStatus.Failed;
+                step.LastMessage = "Cancelled";
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+                throw;
             }
-
-            MigratePreparePath(out _, out var projectOriginPath, out _, out _, out var projectTargetPath, out _);
-
-            await GenerateProjectsAsync(true, projectOriginPath, projectTargetPath, ct);
-
-            CanOpenFolder = true;
-            CanApplyDiff = true;
-            return 0;
+            catch (Exception ex)
+            {
+                step.Status = MigrationStepStatus.Failed;
+                step.LastMessage = ex.Message;
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+                throw;
+            }
         }
 
         [RelayCommand]
         private void MigrateOpenFolder()
         {
-            Process.Start("explorer.exe", AppSettings.TmpFolderPath);
+            var step = Step(2);
+            try
+            {
+                ResetStepsFrom(2);
+                Process.Start("explorer.exe", AppSettings.TmpFolderPath);
+                step.Status = MigrationStepStatus.Done;
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+            }
+            catch (Exception ex)
+            {
+                step.Status = MigrationStepStatus.Failed;
+                step.LastMessage = ex.Message;
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+            }
         }
 
         [RelayCommand]
@@ -241,19 +327,44 @@
 
         private async Task<bool> MigrateApplyDiffRunAsync(CancellationToken ct = default)
         {
-            bool result = false;
-
-            MigratePreparePath(out var projectOriginalFolderName, out var projectOriginPath, out _, out var projectTargetFolderName, out _, out _);
-
-            if (OverwriteBIAFromOriginal == true)
+            var step = Step(3);
+            step.Status = MigrationStepStatus.Running;
+            ResetStepsFrom(3);
+            using var stepScope = consoleWriter.BeginStep(3, step.Label);
+            try
             {
-                await projectCreatorService.OverwriteBIAFolder(projectOriginPath, ModifyProject.CurrentProject.Folder, false, ct);
+                bool result = false;
+
+                MigratePreparePath(out var projectOriginalFolderName, out var projectOriginPath, out _, out var projectTargetFolderName, out _, out _);
+
+                if (OverwriteBIAFromOriginal == true)
+                {
+                    await projectCreatorService.OverwriteBIAFolder(projectOriginPath, ModifyProject.CurrentProject.Folder, false, ct);
+                }
+
+                result = await ApplyDiffAsync(true, projectOriginalFolderName, projectTargetFolderName, ct);
+
+                CanMergeRejected = true;
+
+                step.Status = result ? MigrationStepStatus.Done : MigrationStepStatus.Warning;
+                if (!result) step.LastMessage = "Apply Diff returned false — inspect output";
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+                return result;
             }
-
-            result = await ApplyDiffAsync(true, projectOriginalFolderName, projectTargetFolderName, ct);
-
-            CanMergeRejected = true;
-            return result;
+            catch (OperationCanceledException)
+            {
+                step.Status = MigrationStepStatus.Failed;
+                step.LastMessage = "Cancelled";
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                step.Status = MigrationStepStatus.Failed;
+                step.LastMessage = ex.Message;
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+                throw;
+            }
         }
 
         [RelayCommand]
@@ -264,41 +375,65 @@
 
         private async Task MigrateMergeRejectedRunAsync(CancellationToken ct = default)
         {
-            await MergeRejectedAsync(true, ct);
-
-            CanMergeRejected = false;
-
-            await Task.Run(() =>
+            var step = Step(4);
+            step.Status = MigrationStepStatus.Running;
+            ResetStepsFrom(4);
+            using var stepScope = consoleWriter.BeginStep(4, step.Label);
+            try
             {
-                foreach (var biaFront in ModifyProject.CurrentProject.BIAFronts)
+                await MergeRejectedAsync(true, ct);
+
+                CanMergeRejected = false;
+
+                await Task.Run(() =>
                 {
-                    string path = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, ModifyProject.CurrentProject.Name, biaFront, crudSettings.PackageLockFileName);
-                    if (new FileInfo(path).Exists)
+                    foreach (var biaFront in ModifyProject.CurrentProject.BIAFronts)
                     {
-                        File.Delete(path);
+                        string path = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, ModifyProject.CurrentProject.Name, biaFront, crudSettings.PackageLockFileName);
+                        if (new FileInfo(path).Exists)
+                        {
+                            File.Delete(path);
+                        }
                     }
-                }
 
-                string rootBiaFolder = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, ModifyProject.CurrentProject.Name, Constants.FolderBia);
-                if (!Directory.Exists(rootBiaFolder))
-                {
-                    Directory.CreateDirectory(rootBiaFolder);
-                }
+                    string rootBiaFolder = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, ModifyProject.CurrentProject.Name, Constants.FolderBia);
+                    if (!Directory.Exists(rootBiaFolder))
+                    {
+                        Directory.CreateDirectory(rootBiaFolder);
+                    }
 
-                var fileToSuppress = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, ModifyProject.CurrentProject.Name, FeatureSettingHelper.fileName);
-                if (File.Exists(fileToSuppress))
-                {
-                    File.Delete(fileToSuppress);
-                }
+                    var fileToSuppress = Path.Combine(settingsService.Settings.ModifyProjectRootProjectsPath, ModifyProject.CurrentProject.Name, FeatureSettingHelper.fileName);
+                    if (File.Exists(fileToSuppress))
+                    {
+                        File.Delete(fileToSuppress);
+                    }
 
-                var fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
-                if (!File.Exists(fileToCheck))
-                {
-                    MigratePreparePath(out _, out _, out _, out _, out var projectTargetPath, out _);
-                    var fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
-                    File.Copy(fileToCopy, fileToCheck);
-                }
-            });
+                    var fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
+                    if (!File.Exists(fileToCheck))
+                    {
+                        MigratePreparePath(out _, out _, out _, out _, out var projectTargetPath, out _);
+                        var fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+                        File.Copy(fileToCopy, fileToCheck);
+                    }
+                }, ct);
+
+                step.Status = MigrationStepStatus.Done;
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+            }
+            catch (OperationCanceledException)
+            {
+                step.Status = MigrationStepStatus.Failed;
+                step.LastMessage = "Cancelled";
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                step.Status = MigrationStepStatus.Failed;
+                step.LastMessage = ex.Message;
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+                throw;
+            }
         }
 
         [RelayCommand]
@@ -310,7 +445,33 @@
         [RelayCommand]
         private void FixUsings()
         {
-            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) => await parserService.FixUsings(ct)));
+            WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
+            {
+                var step = Step(6);
+                step.Status = MigrationStepStatus.Running;
+                ResetStepsFrom(6);
+                using var stepScope = consoleWriter.BeginStep(6, step.Label);
+                try
+                {
+                    await parserService.FixUsings(ct);
+                    step.Status = MigrationStepStatus.Done;
+                    consoleWriter.RefreshStepColors(StepStatusResolver);
+                }
+                catch (OperationCanceledException)
+                {
+                    step.Status = MigrationStepStatus.Failed;
+                    step.LastMessage = "Cancelled";
+                    consoleWriter.RefreshStepColors(StepStatusResolver);
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    step.Status = MigrationStepStatus.Failed;
+                    step.LastMessage = ex.Message;
+                    consoleWriter.RefreshStepColors(StepStatusResolver);
+                    throw;
+                }
+            }));
         }
 
         // --- Migration helper methods ---
@@ -443,8 +604,32 @@
         private async Task OverwriteBIAFolderAsync(bool actionFinishedAtEnd, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
-            MigratePreparePath(out _, out _, out _, out _, out var projectTargetPath, out _);
-            await projectCreatorService.OverwriteBIAFolder(projectTargetPath, ModifyProject.CurrentProject.Folder, actionFinishedAtEnd, ct);
+            var step = Step(5);
+            step.Status = MigrationStepStatus.Running;
+            ResetStepsFrom(5);
+            using var stepScope = consoleWriter.BeginStep(5, step.Label);
+            try
+            {
+                MigratePreparePath(out _, out _, out _, out _, out var projectTargetPath, out _);
+                await projectCreatorService.OverwriteBIAFolder(projectTargetPath, ModifyProject.CurrentProject.Folder, actionFinishedAtEnd, ct);
+
+                step.Status = MigrationStepStatus.Done;
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+            }
+            catch (OperationCanceledException)
+            {
+                step.Status = MigrationStepStatus.Failed;
+                step.LastMessage = "Cancelled";
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                step.Status = MigrationStepStatus.Failed;
+                step.LastMessage = ex.Message;
+                consoleWriter.RefreshStepColors(StepStatusResolver);
+                throw;
+            }
         }
 
         private static bool IsDirectoryEmpty(string path)
