@@ -52,16 +52,17 @@
             </Grid>
         </DataTemplate>
 
-        <!-- Arrow connector style: muted by default, primary when both
-             flanking steps are in the Done lane (visual "completed flow"). -->
+        <!-- Arrow connector style: theme-agnostic neutral gray. Tied to the
+             same #9E9E9E used by the Pending step color so the cells and
+             connectors stay visually consistent and legible on both themes. -->
+        <SolidColorBrush x:Key="StepConnectorBrush" Color="#9E9E9E"/>
         <Style x:Key="StepConnectorStyle" TargetType="TextBlock">
             <Setter Property="Text" Value="→"/>
             <Setter Property="FontSize" Value="22"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="Opacity" Value="0.4"/>
-            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+            <Setter Property="Foreground" Value="{StaticResource StepConnectorBrush}"/>
         </Style>
     </UserControl.Resources>
 

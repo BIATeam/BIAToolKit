@@ -22,9 +22,17 @@ namespace BIA.ToolKit.Converters
             if (value is not MigrationStepStatus status)
                 return Brushes.Gray;
 
+            // Pending uses a fixed neutral gray (#9E9E9E, Material Grey 500)
+            // — readable on both dark and light themes. Going through
+            // MaterialDesign.Brush.Foreground via the converter is brittle:
+            // the converter resolves the brush once at binding evaluation,
+            // theme switches do not re-fire it, and the resource itself can
+            // be too dim against the application's dark surface.
+            if (status == MigrationStepStatus.Pending)
+                return new SolidColorBrush(Color.FromRgb(0x9E, 0x9E, 0x9E));
+
             string resourceKey = status switch
             {
-                MigrationStepStatus.Pending => "MaterialDesign.Brush.Foreground",
                 MigrationStepStatus.Running => "MaterialDesign.Brush.Primary",
                 MigrationStepStatus.Done => "MaterialDesign.Brush.ValidationSuccess",
                 MigrationStepStatus.Warning => "MaterialDesign.Brush.ValidationWarning",
@@ -40,7 +48,6 @@ namespace BIA.ToolKit.Converters
             // (e.g. design-time preview). Matches the spec's dark-theme palette.
             return status switch
             {
-                MigrationStepStatus.Pending => new SolidColorBrush(Color.FromRgb(0xB0, 0xB0, 0xB0)),
                 MigrationStepStatus.Running => new SolidColorBrush(Color.FromRgb(0x42, 0xA5, 0xF5)),
                 MigrationStepStatus.Done => new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50)),
                 MigrationStepStatus.Warning => new SolidColorBrush(Color.FromRgb(0xFF, 0xA7, 0x26)),
