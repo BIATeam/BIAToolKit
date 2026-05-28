@@ -26,6 +26,8 @@ namespace BIA.ToolKit.Test.Templates
 
         internal class ConsoleWriterTest(IMessageSink messageSink, Stopwatch stopwatch, string fixtureName) : IConsoleWriter
         {
+            private sealed class NoopScope : System.IDisposable { public void Dispose() { } }
+
             public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
             {
                 messageSink.OnMessage(new DiagnosticMessage($"[{fixtureName} {stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}]\t{message}"));
@@ -33,6 +35,8 @@ namespace BIA.ToolKit.Test.Templates
 
             public void Clear() { }
             public void CopyToClipboard() { }
+            public System.IDisposable BeginStep(int number, string label) => new NoopScope();
+            public void RefreshStepColors(System.Func<int, BIA.ToolKit.Domain.Model.MigrationStepStatus?> stepStatusProvider) { }
         }
 
         public FileGeneratorService FileGeneratorService { get; private set; }

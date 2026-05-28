@@ -1,0 +1,97 @@
+<UserControl x:Class="BIA.ToolKit.UserControls.MigrationStepperUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:conv="clr-namespace:BIA.ToolKit.Converters"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="120" d:DesignWidth="800">
+    <UserControl.Resources>
+        <conv:MigrationStepStatusToColorConverter x:Key="StatusToColor"/>
+        <conv:MigrationStepStatusToGlyphConverter x:Key="StatusToGlyph"/>
+
+        <!-- Reusable data template for a stepper cell -->
+        <DataTemplate x:Key="StepCellTemplate">
+            <Grid Margin="6,4" ToolTip="{Binding LastMessage}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Button Grid.Row="0"
+                        Command="{Binding Command}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Width="64" Height="64"
+                        Padding="0"
+                        BorderThickness="2"
+                        BorderBrush="{Binding Status, Converter={StaticResource StatusToColor}}"
+                        Background="Transparent"
+                        Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="32"/>
+                        </Style>
+                    </Button.Resources>
+                    <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Number}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"
+                                   Foreground="{Binding Status, Converter={StaticResource StatusToColor}}"/>
+                        <TextBlock Text="{Binding Status, Converter={StaticResource StatusToGlyph}}"
+                                   FontSize="14"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{Binding Status, Converter={StaticResource StatusToColor}}"/>
+                    </StackPanel>
+                </Button>
+                <TextBlock Grid.Row="1"
+                           Text="{Binding Label}"
+                           HorizontalAlignment="Center"
+                           Margin="0,6,0,0"
+                           TextTrimming="CharacterEllipsis"
+                           TextAlignment="Center"
+                           MaxWidth="100"/>
+            </Grid>
+        </DataTemplate>
+
+        <!-- Arrow connector style: theme-agnostic neutral gray. Tied to the
+             same #9E9E9E used by the Pending step color so the cells and
+             connectors stay visually consistent and legible on both themes. -->
+        <SolidColorBrush x:Key="StepConnectorBrush" Color="#9E9E9E"/>
+        <Style x:Key="StepConnectorStyle" TargetType="TextBlock">
+            <Setter Property="Text" Value="→"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{StaticResource StepConnectorBrush}"/>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- 6 step cells separated by 5 arrow connectors -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <ContentControl Grid.Column="0"  Content="{Binding Steps[0], RelativeSource={RelativeSource AncestorType=UserControl}}" ContentTemplate="{StaticResource StepCellTemplate}"/>
+        <TextBlock      Grid.Column="1"  Style="{StaticResource StepConnectorStyle}" Margin="2,0,2,18"/>
+        <ContentControl Grid.Column="2"  Content="{Binding Steps[1], RelativeSource={RelativeSource AncestorType=UserControl}}" ContentTemplate="{StaticResource StepCellTemplate}"/>
+        <TextBlock      Grid.Column="3"  Style="{StaticResource StepConnectorStyle}" Margin="2,0,2,18"/>
+        <ContentControl Grid.Column="4"  Content="{Binding Steps[2], RelativeSource={RelativeSource AncestorType=UserControl}}" ContentTemplate="{StaticResource StepCellTemplate}"/>
+        <TextBlock      Grid.Column="5"  Style="{StaticResource StepConnectorStyle}" Margin="2,0,2,18"/>
+        <ContentControl Grid.Column="6"  Content="{Binding Steps[3], RelativeSource={RelativeSource AncestorType=UserControl}}" ContentTemplate="{StaticResource StepCellTemplate}"/>
+        <TextBlock      Grid.Column="7"  Style="{StaticResource StepConnectorStyle}" Margin="2,0,2,18"/>
+        <ContentControl Grid.Column="8"  Content="{Binding Steps[4], RelativeSource={RelativeSource AncestorType=UserControl}}" ContentTemplate="{StaticResource StepCellTemplate}"/>
+        <TextBlock      Grid.Column="9"  Style="{StaticResource StepConnectorStyle}" Margin="2,0,2,18"/>
+        <ContentControl Grid.Column="10" Content="{Binding Steps[5], RelativeSource={RelativeSource AncestorType=UserControl}}" ContentTemplate="{StaticResource StepCellTemplate}"/>
+    </Grid>
+</UserControl>

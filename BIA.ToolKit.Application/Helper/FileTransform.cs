@@ -284,11 +284,12 @@ namespace BIA.ToolKit.Application.Helper
             }
         }
 
-        static public void CopyFilesRecursively(string sourcePath, string targetPath, string profile = "", IList<string> filesToExclude = null, IList<string> foldersToExcludes = null)
+        static public void CopyFilesRecursively(string sourcePath, string targetPath, string profile = "", IList<string> filesToExclude = null, IList<string> foldersToExcludes = null, CancellationToken cancellationToken = default)
         {
             //Now Create all of the directories
             foreach (string sourceDir in Directory.GetDirectories(sourcePath, "*", SearchOption.TopDirectoryOnly))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 string sourceDirName = Path.GetFileName(sourceDir);
 
                 if (foldersToExcludes?.Any(f => Regex.IsMatch(sourceDirName, f, RegexOptions.IgnoreCase)) == true)
@@ -298,12 +299,13 @@ namespace BIA.ToolKit.Application.Helper
 
                 string subTargetPath = sourceDir.Replace(sourcePath, targetPath);
                 Directory.CreateDirectory(sourceDir.Replace(sourcePath, targetPath));
-                CopyFilesRecursively(sourceDir, subTargetPath, profile, filesToExclude, foldersToExcludes);
+                CopyFilesRecursively(sourceDir, subTargetPath, profile, filesToExclude, foldersToExcludes, cancellationToken);
             }
 
             //Copy all the files & Replaces any files with the same name
             foreach (string sourceFile in Directory.GetFiles(sourcePath, "*.*", SearchOption.TopDirectoryOnly))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 bool isFilenameExcluded = filesToExclude?.Any(s => Regex.IsMatch(Path.GetFileName(sourceFile), s, RegexOptions.IgnoreCase)) == true;
                 bool isFilePathExcluded = filesToExclude?.Any(s => Regex.IsMatch(sourceFile, s, RegexOptions.IgnoreCase)) == true;
                 if (!isFilenameExcluded && !isFilePathExcluded)
@@ -323,26 +325,29 @@ namespace BIA.ToolKit.Application.Helper
             }
         }
 
-        static public void RemoveRecursively(string targetPath, IList<string> filesToRemove)
+        static public void RemoveRecursively(string targetPath, IList<string> filesToRemove, CancellationToken cancellationToken = default)
         {
             //Copy all the files & Replaces any files with the same name
             foreach (string filePath in Directory.GetFiles(targetPath, "*.*", SearchOption.AllDirectories))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 string fileName = Path.GetFileName(filePath);
                 if (filesToRemove.Any(s => Regex.IsMatch(fileName, s, RegexOptions.IgnoreCase)))
                     File.Delete(filePath);
             }
         }
 
-        public static void ForceDeleteDirectory(string path)
+        public static void ForceDeleteDirectory(string path, CancellationToken cancellationToken = default)
         {
             var directory = new DirectoryInfo(path) { Attributes = FileAttributes.Normal };
 
             foreach (FileSystemInfo info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 info.Attributes = FileAttributes.Normal;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             directory.Delete(true);
         }
 
