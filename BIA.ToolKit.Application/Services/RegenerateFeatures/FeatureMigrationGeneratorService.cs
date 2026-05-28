@@ -23,9 +23,13 @@ namespace BIA.ToolKit.Application.Services.RegenerateFeatures
     {
         private class MutedConsoleWriter : IConsoleWriter
         {
+            private sealed class NoopScope : System.IDisposable { public void Dispose() { } }
+
             public void AddMessageLine(string message, string color = null, bool refreshimediate = true) { }
             public void Clear() { }
             public void CopyToClipboard() { }
+            public System.IDisposable BeginStep(int number, string label) => new NoopScope();
+            public void RefreshStepColors(System.Func<int, BIA.ToolKit.Domain.Model.MigrationStepStatus?> stepStatusProvider) { }
         }
 
         private const int REGENERATE_FEATURES_VERSION_MINIMUM = 500;
