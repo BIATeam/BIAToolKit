@@ -256,108 +256,70 @@
 
                     <!--#region Configuration Page -->
                     <Grid x:Name="PageConfig" Visibility="{Binding SelectedPage, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Configuration, FallbackValue=Collapsed}">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="auto"/>
-                                <RowDefinition/>
-                            </Grid.RowDefinitions>
+                        <Image gif:ImageBehavior.AnimatedSource="Images/LogoBIA.png" Opacity="0.6"/>
+                        <ScrollViewer Margin="6"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <!-- 1. Update banner -->
+                                <uc:UpdateBannerUC/>
 
-                            <Image gif:ImageBehavior.AnimatedSource="Images/LogoBIA.png" Grid.RowSpan="2" Opacity="0.6"/>
-
-                            <Grid Grid.Row="0" Margin="10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top" Margin="0,5">
-                                    <Button x:Name="ImportConfigButton" Height="35" Margin="0,0,5,0" Command="{Binding ImportConfigCommand}"
-                                            ToolTip="Import Configuration">
+                                <!-- 2. Import / Export toolbar -->
+                                <StackPanel Orientation="Horizontal" Margin="10,4">
+                                    <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                            Command="{Binding ImportConfigCommand}"
+                                            Padding="10,2" Height="28">
                                         <StackPanel Orientation="Horizontal">
-                                            <materialDesign:PackIcon Kind="Import" Height="25" Width="25"/>
-                                            <TextBlock Text="Import Configuration" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                            <materialDesign:PackIcon Kind="Import" Width="14" Height="14" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Import Configuration" Margin="4,0,0,0"/>
                                         </StackPanel>
                                     </Button>
-                                    <Button x:Name="ExportConfigButton" Height="35" Style="{StaticResource MaterialDesignPaperButton}" Command="{Binding ExportConfigCommand}"
-                                            ToolTip="Export Configuration">
+                                    <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                            Command="{Binding ExportConfigCommand}"
+                                            Margin="8,0,0,0"
+                                            Padding="10,2" Height="28">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="Export Configuration" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                                            <materialDesign:PackIcon Kind="Export" Height="25" Width="25"/>
+                                            <materialDesign:PackIcon Kind="Export" Width="14" Height="14" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Export Configuration" Margin="4,0,0,0"/>
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>
 
-                                <Button Grid.Column="2" Height="35" Margin="10,5,0,5" VerticalAlignment="Top"
-                                        Style="{StaticResource MaterialDesignPaperButton}"
-                                        Command="{Binding OpenToolkitRepositorySettingsCommand}"
-                                        ToolTip="Toolkit Repository Settings">
-                                    <StackPanel Orientation="Horizontal">
-                                        <materialDesign:PackIcon Kind="CogOutline" Height="20" Width="20" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Toolkit Repository Settings" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                                    </StackPanel>
-                                </Button>
-                            </Grid>
+                                <!-- 3. Toolkit Update Source -->
+                                <uc:RepositorySectionUC Icon="🔧"
+                                                        Title="Toolkit Update Source"
+                                                        Subtitle="Where BIA Toolkit checks for its own updates. Configure once — the app auto-updates from this source."
+                                                        EmptyHint="The auto-update feature is disabled until you add a source."
+                                                        DefaultSourceName="BIAToolkit Shared"
+                                                        DefaultSourcePath="\\share.bia.safran\BIAToolKit\Releases\BiaToolkit"
+                                                        Items="{Binding ToolkitRepositorySingleton}"
+                                                        ShowAddButton="False"
+                                                        AddCommand="{Binding OpenToolkitRepositorySettingsCommand}"
+                                                        UseDefaultCommand="{Binding UseDefaultToolkitRepositoryCommand}"/>
 
-                            <Grid Grid.Row="1" Margin="30,10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition Width="0.05*"/>
-                                    <ColumnDefinition/>
-                                </Grid.ColumnDefinitions>
+                                <!-- 4. Templates -->
+                                <uc:RepositorySectionUC Icon="📦"
+                                                        Title="Templates Repositories"
+                                                        Subtitle="Sources of BIA framework templates used to scaffold new projects and as baseline for migrations. At least one active source required."
+                                                        EmptyHint="You can't create or migrate projects until you add at least one source."
+                                                        DefaultSourceName="BIATemplate Shared"
+                                                        DefaultSourcePath="\\share.bia.safran\BIAToolKit\Releases\BiaTemplate"
+                                                        Items="{Binding TemplateRepositories}"
+                                                        AddCommand="{Binding AddTemplateRepositoryCommand}"
+                                                        UseDefaultCommand="{Binding UseDefaultTemplatesRepositoryCommand}"/>
 
-                                <Grid Grid.Column="0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="auto"/>
-                                        <RowDefinition/>
-                                    </Grid.RowDefinitions>
-
-                                    <Grid Grid.RowSpan="2" Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.4"/>
-                                    <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,5">
-                                        <Label Grid.Row="0" Margin="0,2,0,0" Content="TEMPLATES REPOSITORIES" FontWeight="Bold" FontSize="25"/>
-                                        <Button Style="{StaticResource MaterialDesignIconButton}" Margin="10,0,0,0" Command="{Binding AddTemplateRepositoryCommand}" ToolTip="Add Template Repository"
-                                                Foreground="{DynamicResource MaterialDesign.Brush.Primary}">
-                                            <materialDesign:PackIcon Kind="PlusCircle" Height="28" Width="28"/>
-                                        </Button>
-                                    </StackPanel>
-                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" Margin="10,0,0,0">
-                                        <ItemsControl ItemsSource="{Binding TemplateRepositories}" VerticalAlignment="Top">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate DataType="{x:Type vm:RepositoryViewModel}">
-                                                    <uc:RepositoryResumeUC Margin="0,0,0,10" DataContext="{Binding}"/>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-                                </Grid>
-
-                                <Grid Grid.Column="2">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="auto"/>
-                                        <RowDefinition/>
-                                    </Grid.RowDefinitions>
-
-                                    <Grid Grid.RowSpan="2" Background="{DynamicResource MaterialDesign.Brush.Background}" Opacity="0.4"/>
-                                    <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,5">
-                                        <ToggleButton Margin="0,0,10,0" Style="{StaticResource MaterialDesignSwitchToggleButton}" IsChecked="{Binding Settings_UseCompanyFiles}" ToolTip="Use Company Files"/>
-                                        <Label Grid.Row="0" Margin="0,2,0,0" Content="COMPANY FILES REPOSITORIES" FontWeight="Bold" FontSize="25" IsEnabled="{Binding Settings_UseCompanyFiles}"/>
-                                        <Button Style="{StaticResource MaterialDesignIconButton}" Margin="10,0,0,0" Command="{Binding AddCompanyFilesRepositoryCommand}" ToolTip="Add Company Files Repository" IsEnabled="{Binding Settings_UseCompanyFiles}"
-                                                Foreground="{DynamicResource MaterialDesign.Brush.Primary}">
-                                            <materialDesign:PackIcon Kind="PlusCircle" Height="28" Width="28"/>
-                                        </Button>
-                                    </StackPanel>
-                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" Margin="10,0,0,0" IsEnabled="{Binding Settings_UseCompanyFiles}">
-                                        <ItemsControl ItemsSource="{Binding CompanyFilesRepositories}" VerticalAlignment="Top">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate DataType="{x:Type vm:RepositoryViewModel}">
-                                                    <uc:RepositoryResumeUC Margin="0,0,0,10" DataContext="{Binding}"/>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-                                </Grid>
-                            </Grid>
-                        </Grid>
+                                <!-- 5. Company Files (optional) -->
+                                <uc:RepositorySectionUC Icon="🏢"
+                                                        Title="Company Files Repositories (optional)"
+                                                        Subtitle="Company-specific overrides applied on top of templates when creating new projects. Leave empty for vanilla BIA projects."
+                                                        EmptyHint="New projects will use BIA defaults without company customization."
+                                                        DefaultSourceName="BIACompanyFiles Azure"
+                                                        DefaultSourcePath="https://azure.devops.safran/SafranElectricalAndPower/Digital%20Manufacturing/_git/BIACompanyFiles"
+                                                        Items="{Binding CompanyFilesRepositories}"
+                                                        AddCommand="{Binding AddCompanyFilesRepositoryCommand}"
+                                                        UseDefaultCommand="{Binding UseDefaultCompanyFilesRepositoryCommand}"/>
+                            </StackPanel>
+                        </ScrollViewer>
                     </Grid>
                     <!--#endregion-->
 
