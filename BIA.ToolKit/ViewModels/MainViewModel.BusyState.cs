@@ -108,7 +108,7 @@ namespace BIA.ToolKit.ViewModels
 
                 if (settings.AutoUpdate)
                 {
-                    await updateService.CheckForUpdatesAsync(ct);
+                    await CheckForUpdatesInternal(ct);
                 }
 
                 await Task.Run(() => cSharpParserService.RegisterMSBuild(consoleWriter), ct);

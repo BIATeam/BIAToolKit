@@ -12,10 +12,20 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
         <Thickness x:Key="FormFieldMargin">0,0,0,8</Thickness>
 
+        <Style x:Key="FieldHelper" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Opacity" Value="0.65"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="Margin" Value="2,-4,0,8"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
         <DataTemplate x:Key="CommonFields" DataType="{x:Type viewModel:RepositoryViewModel}">
             <StackPanel>
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Name" Text="{Binding Name}" TextWrapping="Wrap"/>
+                <TextBlock Style="{StaticResource FieldHelper}" Text="Friendly label, e.g. &quot;Safran share&quot;"/>
                 <ComboBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Repository Type" ItemsSource="{Binding Source={x:Reference Form}, Path=DataContext.RepositoryTypes}" SelectedItem="{Binding Source={x:Reference Form}, Path=DataContext.RepositoryType}"/>
+                <TextBlock Style="{StaticResource FieldHelper}" Text="Folder = SMB share · Git = remote URL"/>
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Company Name Template Value (Optional)" Text="{Binding CompanyName}" TextWrapping="Wrap" Visibility="{Binding IsVisibleCompanyName, Converter={StaticResource BoolToVisConverter}}"/>
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Project Name Template Value (Optional)" Text="{Binding ProjectName}" TextWrapping="Wrap" Visibility="{Binding IsVisibleProjectName, Converter={StaticResource BoolToVisConverter}}"/>
             </StackPanel>
@@ -25,6 +35,7 @@
             <StackPanel>
                 <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource CommonFields}"/>
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Url" Text="{Binding Url}" TextWrapping="Wrap"/>
+                <TextBlock Style="{StaticResource FieldHelper}" Text="Example: https://github.com/BIATeam/BIADemo or https://azure.devops.safran/..."/>
                 <CheckBox Margin="{StaticResource FormFieldMargin}" IsChecked="{Binding UseLocalClonedFolder}" Content="Use Local Cloned Folder"/>
                 <Grid Visibility="{Binding UseLocalClonedFolder, Converter={StaticResource BoolToVisConverter}}">
                     <Grid.ColumnDefinitions>
@@ -44,6 +55,7 @@
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository URL Release (Optional)" Text="{Binding UrlRelease}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}"/>
                 <!-- Release type Folder -->
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Release Regex Pattern (Optional)" Text="{Binding ReleasesFolderRegexPattern}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeFolder, Converter={StaticResource BoolToVisConverter}}"/>
+                <TextBlock Style="{StaticResource FieldHelper}" Text="Default matches V1.2.3 and V1.2.3.4" Visibility="{Binding IsReleaseTypeFolder, Converter={StaticResource BoolToVisConverter}}"/>
                 <!-- Release type Tag -->
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Content Folder (Optional)" Text="{Binding ReleasesTagContentFolder}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeTag, Converter={StaticResource BoolToVisConverter}}"/>
             </StackPanel>
@@ -62,7 +74,9 @@
                         <materialDesign:PackIcon Kind="FolderSearch" Height="25" Width="25" />
                     </Button>
                 </Grid>
+                <TextBlock Style="{StaticResource FieldHelper}" Text="Example: \\share.bia.safran\BIAToolKit\Releases\BiaTemplate"/>
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="Release Regex Pattern (Optional)" Text="{Binding ReleasesFolderRegexPattern}" TextWrapping="Wrap"/>
+                <TextBlock Style="{StaticResource FieldHelper}" Text="Default matches V1.2.3 and V1.2.3.4"/>
             </StackPanel>
         </DataTemplate>
     </UserControl.Resources>

@@ -11,6 +11,7 @@ namespace BIA.ToolKit.ViewModels
     using BIA.ToolKit.Application.Services;
     using BIA.ToolKit.Messages;
     using BIA.ToolKit.Domain;
+    using BIA.ToolKit.Domain.Model;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
     using CommunityToolkit.Mvvm.Messaging;
@@ -30,6 +31,19 @@ namespace BIA.ToolKit.ViewModels
             this.consoleWriter = consoleWriter;
             WeakReferenceMessenger.Default.RegisterAll(this);
         }
+
+        // V2.15.0 — sync status surfaced on the new RepositoryCardUC.
+        [ObservableProperty]
+        private RepositorySyncStatus syncStatus = RepositorySyncStatus.Idle;
+
+        [ObservableProperty]
+        private int versionCount;
+
+        [ObservableProperty]
+        private string latestVersion;
+
+        [ObservableProperty]
+        private string lastSyncError;
 
         public void Receive(RepositoryVersionXYZChangedMessage message)
         {
@@ -186,6 +200,8 @@ namespace BIA.ToolKit.ViewModels
         {
             WeakReferenceMessenger.Default.Send(new ExecuteActionWithWaiterMessage(async (ct) =>
             {
+                SyncStatus = RepositorySyncStatus.Syncing;
+                LastSyncError = null;
                 try
                 {
                     consoleWriter.AddMessageLine("Getting releases data...", "pink");
@@ -196,12 +212,58 @@ namespace BIA.ToolKit.ViewModels
                     {
                         consoleWriter.AddMessageLine($"WARNING: Releases data got from downloaded releases", "orange");
                     }
+                    RefreshVersionInfo();
+                    SyncStatus = RepositorySyncStatus.Idle;
+                }
+                catch (OperationCanceledException)
+                {
+                    LastSyncError = "Cancelled";
+                    SyncStatus = RepositorySyncStatus.Failed;
+                    throw;
                 }
                 catch (Exception ex)
                 {
                     consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
+                    LastSyncError = ex.Message;
+                    SyncStatus = RepositorySyncStatus.Failed;
                 }
             }));
+        }
+
+        /// <summary>
+        /// Computes <see cref="VersionCount"/> and <see cref="LatestVersion"/> from
+        /// the repository's current <c>Releases</c> collection. Releases whose name
+        /// matches a leading <c>V</c> followed by a semver are preferred when picking
+        /// the latest; otherwise the first release in the collection is used.
+        /// </summary>
+        private void RefreshVersionInfo()
+        {
+            var releases = repository.Releases ?? [];
+            VersionCount = releases.Count;
+            if (releases.Count == 0)
+            {
+                LatestVersion = null;
+                return;
+            }
+
+            // Prefer semver-named releases when ordering; fall back to
+            // alphabetical descending if no parseable name is present.
+            var parsed = releases
+                .Select(r => (r.Name, Parsed: TryParseVersion(r.Name)))
+                .Where(x => x.Parsed != null)
+                .OrderByDescending(x => x.Parsed)
+                .ToList();
+
+            LatestVersion = parsed.Count > 0
+                ? parsed[0].Name
+                : releases.OrderByDescending(r => r.Name).First().Name;
+        }
+
+        private static Version TryParseVersion(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            string trimmed = name.StartsWith('V') || name.StartsWith('v') ? name[1..] : name;
+            return Version.TryParse(trimmed, out Version v) ? v : null;
         }
 
         [RelayCommand]

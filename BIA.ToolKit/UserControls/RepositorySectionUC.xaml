@@ -1,0 +1,145 @@
+<UserControl x:Class="BIA.ToolKit.UserControls.RepositorySectionUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:uc="clr-namespace:BIA.ToolKit.UserControls"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="280" d:DesignWidth="1100">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+    <Border Margin="10,8"
+            Padding="14"
+            CornerRadius="6"
+            BorderThickness="1"
+            BorderBrush="{DynamicResource MaterialDesign.Brush.Card.Border}"
+            Background="{DynamicResource MaterialDesign.Brush.Card.Background}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Text="{Binding Icon, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                           FontSize="22"
+                           Margin="0,0,8,0"
+                           VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Title, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                           FontSize="13" FontWeight="SemiBold"
+                           VerticalAlignment="Center"/>
+                <Button Grid.Column="2"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Command="{Binding AddCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        Visibility="{Binding ShowAddButton, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"
+                        Padding="10,2"
+                        Height="28">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Plus" Width="14" Height="14" VerticalAlignment="Center"/>
+                        <TextBlock Text="Add" Margin="4,0,0,0"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Subtitle -->
+            <TextBlock Grid.Row="1"
+                       Text="{Binding Subtitle, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                       FontSize="11" Opacity="0.7"
+                       TextWrapping="Wrap"
+                       Margin="0,4,0,8"/>
+
+            <!-- Body: cards or empty state -->
+            <Grid Grid.Row="2">
+                <ItemsControl ItemsSource="{Binding Items, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                    <ItemsControl.Style>
+                        <Style TargetType="ItemsControl">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasItems, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.Style>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <uc:RepositoryCardUC Width="380"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Empty state -->
+                <Border BorderBrush="{DynamicResource MaterialDesign.Brush.Card.Border}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="20"
+                        HorizontalAlignment="Stretch">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasItems, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="🔍 No source configured"
+                                   FontSize="13" Opacity="0.7"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding EmptyHint, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                   FontSize="11" Opacity="0.6"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   MaxWidth="500"
+                                   Margin="0,4,0,12"/>
+
+                        <TextBlock Text="💡 Suggested for Safran users:"
+                                   FontSize="11" FontStyle="Italic"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,8,0,4"/>
+                        <TextBlock Text="{Binding DefaultSourceName, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding DefaultSourcePath, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                   FontFamily="Consolas" FontSize="11" Opacity="0.7"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="500"/>
+
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    Margin="0,14,0,0">
+                            <Button Content="Use this default"
+                                    Style="{StaticResource Button.SecondaryAction}"
+                                    Command="{Binding UseDefaultCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    Padding="14,4"/>
+                            <Button Content="+ Add custom source"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Command="{Binding AddCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    Margin="8,0,0,0"
+                                    Padding="14,4"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

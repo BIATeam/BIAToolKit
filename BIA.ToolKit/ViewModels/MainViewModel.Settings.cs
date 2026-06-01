@@ -18,6 +18,8 @@ namespace BIA.ToolKit.ViewModels
             OnPropertyChanged(nameof(Settings_AutoUpdate));
             OnPropertyChanged(nameof(Settings_IsDarkTheme));
             OnPropertyChanged(nameof(ToolkitRepository));
+
+            RefreshBannerStateFromSettings();
         }
 
         public string Settings_RootProjectsPath
