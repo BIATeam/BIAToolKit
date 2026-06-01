@@ -1,0 +1,157 @@
+<UserControl x:Class="BIA.ToolKit.UserControls.UpdateBannerUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:conv="clr-namespace:BIA.ToolKit.Converters"
+             xmlns:model="clr-namespace:BIA.ToolKit.Domain.Model;assembly=BIA.ToolKit.Domain"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="80" d:DesignWidth="900">
+    <UserControl.Resources>
+        <conv:UpdateBannerStateToColorConverter x:Key="BannerColor"/>
+        <conv:UpdateBannerStateToGlyphConverter x:Key="BannerGlyph"/>
+    </UserControl.Resources>
+
+    <Border Margin="10,4"
+            Padding="14,10"
+            CornerRadius="6"
+            BorderThickness="1"
+            BorderBrush="{Binding BannerState, Converter={StaticResource BannerColor}}"
+            Background="{DynamicResource MaterialDesign.Brush.Card.Background}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="{Binding BannerState, Converter={StaticResource BannerGlyph}}"
+                       FontSize="24"
+                       Foreground="{Binding BannerState, Converter={StaticResource BannerColor}}"
+                       VerticalAlignment="Center"
+                       Margin="0,0,12,0"/>
+
+            <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="BIA Toolkit "
+                               FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding CurrentVersion}"
+                               FontWeight="SemiBold"/>
+
+                    <TextBlock Text="  ·  Up to date">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding BannerState}" Value="{x:Static model:UpdateBannerState.UpToDate}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <TextBlock Margin="6,0,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding BannerState}" Value="{x:Static model:UpdateBannerState.UpdateAvailable}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                        <Run Text=" · "/>
+                        <Run Text="{Binding LatestVersion, Mode=OneWay}" FontWeight="Bold"/>
+                        <Run Text=" available"/>
+                    </TextBlock>
+
+                    <TextBlock Text=" · Checking for updates..."
+                               Margin="6,0,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding BannerState}" Value="{x:Static model:UpdateBannerState.Checking}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <TextBlock Text=" · No update source configured"
+                               Margin="6,0,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding BannerState}" Value="{x:Static model:UpdateBannerState.NoSource}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <TextBlock Text=" · Could not check for updates"
+                               Margin="6,0,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding BannerState}" Value="{x:Static model:UpdateBannerState.Failed}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+
+                <TextBlock FontSize="11" Opacity="0.7" Margin="0,2,0,0">
+                    <Run Text="Last checked:"/>
+                    <Run Text="{Binding LastCheckedAt, StringFormat={}{0:HH:mm:ss}, TargetNullValue=never, Mode=OneWay}"/>
+                </TextBlock>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Check now ↻"
+                        Command="{Binding CheckForUpdatesBannerCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding BannerState}" Value="{x:Static model:UpdateBannerState.UpdateAvailable}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding BannerState}" Value="{x:Static model:UpdateBannerState.Checking}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <Button Content="{Binding LatestVersion, StringFormat=Install V{0} →}"
+                        Command="{Binding InstallUpdateCommand}"
+                        FontWeight="SemiBold"
+                        Margin="6,0,0,0">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource Button.SecondaryAction}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding BannerState}" Value="{x:Static model:UpdateBannerState.UpdateAvailable}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>
