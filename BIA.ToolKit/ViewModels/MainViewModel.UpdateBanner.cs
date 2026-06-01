@@ -25,7 +25,24 @@ namespace BIA.ToolKit.ViewModels
         [ObservableProperty]
         private string lastError;
 
-        public string CurrentVersion => applicationVersion?.ToString() ?? "unknown";
+        public string CurrentVersion =>
+            applicationVersion is null
+                ? "unknown"
+                : $"{applicationVersion.Major}.{applicationVersion.Minor}.{applicationVersion.Build}";
+
+        /// <summary>
+        /// Computes the banner state at startup (or whenever settings reload)
+        /// without firing an actual network check. NoSource when no Toolkit
+        /// repository is configured or it's disabled; otherwise UpToDate as
+        /// the initial assumption — user can click Check now to verify.
+        /// </summary>
+        public void RefreshBannerStateFromSettings()
+        {
+            var repo = settingsService.Settings.ToolkitRepository;
+            BannerState = (repo is null || !repo.UseRepository)
+                ? UpdateBannerState.NoSource
+                : UpdateBannerState.UpToDate;
+        }
 
         /// <summary>
         /// Single-item collection wrapping <see cref="ToolkitRepository"/>
