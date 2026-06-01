@@ -7,6 +7,7 @@ namespace BIA.ToolKit.ViewModels
     using BIA.ToolKit.Application.Helper;
     using BIA.ToolKit.Application.Messages;
     using BIA.ToolKit.Application.Services;
+    using BIA.ToolKit.Common;
     using BIA.ToolKit.Messages;
     using CommunityToolkit.Mvvm.ComponentModel;
     using CommunityToolkit.Mvvm.Input;
@@ -219,6 +220,65 @@ namespace BIA.ToolKit.ViewModels
             waitAddCompanyFilesRepository = true;
             waitAddTemplateRepository = false;
             WeakReferenceMessenger.Default.Send(new OpenRepositoryFormMessage(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, consoleWriter), RepositoryFormMode.Create));
+        }
+
+        /// <summary>
+        /// One-click bootstrap of the Toolkit Update Source with the Safran
+        /// default share, called from the Toolkit-Source empty state.
+        /// Replaces the current ToolkitRepository with the default folder.
+        /// </summary>
+        [RelayCommand]
+        private void UseDefaultToolkitRepository()
+        {
+            var folder = new RepositoryFolder(
+                name: SafranRepositoryDefaults.ToolkitUpdateSourceName,
+                path: SafranRepositoryDefaults.ToolkitUpdateSourcePath,
+                releasesFolderRegexPattern: @"^V\d+\.\d+\.\d+(?:\.\d+)?$",
+                useRepository: true);
+
+            settingsService.SetToolkitRepository(folder);
+            ToolkitRepository = new RepositoryFolderViewModel(folder, gitService, consoleWriter)
+            {
+                IsVisibleCompanyName = false,
+                IsVisibleProjectName = false,
+            };
+            WeakReferenceMessenger.Default.Send(new RepositoriesUpdatedMessage());
+        }
+
+        /// <summary>
+        /// One-click bootstrap of a Templates source with the Safran default
+        /// share, called from the Templates empty state. Activates the new
+        /// repository immediately.
+        /// </summary>
+        [RelayCommand]
+        private void UseDefaultTemplatesRepository()
+        {
+            var folder = new RepositoryFolder(
+                name: SafranRepositoryDefaults.TemplatesSourceName,
+                path: SafranRepositoryDefaults.TemplatesSourcePath,
+                releasesFolderRegexPattern: @"^V\d+\.\d+\.\d+(?:\.\d+)?$",
+                useRepository: true);
+
+            TemplateRepositories.Add(new RepositoryFolderViewModel(folder, gitService, consoleWriter));
+            WeakReferenceMessenger.Default.Send(new RepositoriesUpdatedMessage());
+        }
+
+        /// <summary>
+        /// One-click bootstrap of a Company Files source with the Safran Azure
+        /// DevOps repo, called from the Company-Files empty state. Activates
+        /// the new repository immediately.
+        /// </summary>
+        [RelayCommand]
+        private void UseDefaultCompanyFilesRepository()
+        {
+            var git = RepositoryGit.CreateWithReleaseTypeFolder(
+                name: SafranRepositoryDefaults.CompanyFilesSourceName,
+                url: SafranRepositoryDefaults.CompanyFilesSourceUrl,
+                releasesFolderRegexPattern: @"^V\d+\.\d+\.\d+(?:\.\d+)?$",
+                useRepository: true);
+
+            CompanyFilesRepositories.Add(new RepositoryGitViewModel(git, gitService, consoleWriter));
+            WeakReferenceMessenger.Default.Send(new RepositoriesUpdatedMessage());
         }
 
         public void UpdateRepositories(IBIATKSettings settings)
