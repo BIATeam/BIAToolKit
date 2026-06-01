@@ -258,7 +258,7 @@
                     <Grid x:Name="PageConfig" Visibility="{Binding SelectedPage, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter=Configuration, FallbackValue=Collapsed}">
                         <Image gif:ImageBehavior.AnimatedSource="Images/LogoBIA.png" Opacity="0.6"/>
                         <ScrollViewer Margin="6"
-                                      HorizontalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled"
                                       VerticalScrollBarVisibility="Auto">
                             <StackPanel>
                                 <!-- 1. Update banner -->
