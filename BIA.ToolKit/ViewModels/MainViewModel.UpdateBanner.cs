@@ -39,9 +39,12 @@ namespace BIA.ToolKit.ViewModels
         public void RefreshBannerStateFromSettings()
         {
             var repo = settingsService.Settings.ToolkitRepository;
-            BannerState = (repo is null || !repo.UseRepository)
-                ? UpdateBannerState.NoSource
-                : UpdateBannerState.UpToDate;
+            if (repo is null || !repo.UseRepository)
+            {
+                BannerState = UpdateBannerState.NoSource;
+            }
+            // When a source IS configured, keep whatever state we're in.
+            // The startup auto-check (or the manual Check now) will refine.
         }
 
         /// <summary>
@@ -58,21 +61,28 @@ namespace BIA.ToolKit.ViewModels
         }
 
         [RelayCommand]
-        private async Task CheckForUpdatesBanner()
+        private Task CheckForUpdatesBanner() => CheckForUpdatesInternal(CancellationToken.None);
+
+        /// <summary>
+        /// Shared implementation of the banner update check, called both by
+        /// the manual <see cref="CheckForUpdatesBanner"/> command and by the
+        /// startup auto-check pipeline (which passes its busy-mode token).
+        /// </summary>
+        public async Task CheckForUpdatesInternal(CancellationToken ct)
         {
+            if (settingsService.Settings.ToolkitRepository is null
+                || !settingsService.Settings.ToolkitRepository.UseRepository)
+            {
+                BannerState = UpdateBannerState.NoSource;
+                return;
+            }
+
             BannerState = UpdateBannerState.Checking;
             LastError = null;
 
             try
             {
-                if (settingsService.Settings.ToolkitRepository is null
-                    || !settingsService.Settings.ToolkitRepository.UseRepository)
-                {
-                    BannerState = UpdateBannerState.NoSource;
-                    return;
-                }
-
-                await updateService.CheckForUpdatesAsync(CancellationToken.None);
+                await updateService.CheckForUpdatesAsync(ct);
                 LastCheckedAt = DateTime.Now;
 
                 if (updateService.HasNewVersion)
@@ -85,6 +95,10 @@ namespace BIA.ToolKit.ViewModels
                     LatestVersion = CurrentVersion;
                     BannerState = UpdateBannerState.UpToDate;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
