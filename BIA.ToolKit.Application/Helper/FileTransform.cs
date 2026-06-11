@@ -115,7 +115,9 @@ namespace BIA.ToolKit.Application.Helper
         /// <param name="replaceInFileExtensions">types of files to include</param>
         static public async Task ReplaceInFileAndFileName(string sourceDir, string oldString, string newString, IList<string> replaceInFileExtensions, IConsoleWriter consoleWriter, CancellationToken cancellationToken = default)
         {
-            if (oldString == newString) return;
+            // An empty oldString would make string.Contains("") match everything and string.Replace("", ...)
+            // throw "The value cannot be an empty string. (Parameter 'oldValue')". Nothing to replace anyway.
+            if (string.IsNullOrEmpty(oldString) || oldString == newString) return;
             foreach (string dir in Directory.GetDirectories(sourceDir))
             {
                 cancellationToken.ThrowIfCancellationRequested();
