@@ -21,29 +21,49 @@ namespace BIA.ToolKit.Application.Services
 
         public async Task Synchronize(IRepositoryGit repository, CancellationToken ct = default)
         {
-            if (!repository.UseLocalClonedFolder)
+            // User-managed local clone: never re-clone, just pull.
+            if (repository.UseLocalClonedFolder)
             {
-                await Task.Run(() =>
-                {
-                    if (Directory.Exists(repository.LocalPath))
-                    {
-                        var dirInfo = new DirectoryInfo(repository.LocalPath);
-                        foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
-                        {
-                            file.Attributes = FileAttributes.Normal;
-                            File.Delete(file.FullName);
-                        }
-                        Directory.Delete(repository.LocalPath, true);
-                    }
-
-                    Directory.CreateDirectory(repository.LocalPath);
-                }, ct);
-
-                await Clone(repository.Url, repository.LocalPath, ct);
+                await Synchronize(repository.Url, repository.LocalPath, ct);
                 return;
             }
 
-            await Synchronize(repository.Url, repository.LocalPath, ct);
+            // Toolkit-managed clone: pull incrementally when a valid clone already exists
+            // (fast, deltas only — keeps recurring launches light), and fall back to a fresh
+            // clone if the clone is absent, corrupt or has diverged.
+            if (Directory.Exists(Path.Combine(repository.LocalPath, ".git")))
+            {
+                outPut.AddMessageLine($"Updating local clone of {repository.Name} (git pull)...", "Pink");
+                if (await RunScript("git", ["pull", "--ff-only"], repository.LocalPath, ct) == 0)
+                {
+                    outPut.AddMessageLine("Synchronize finished", "Green");
+                    return;
+                }
+                outPut.AddMessageLine($"git pull failed for {repository.Name}; falling back to a fresh clone...", "Orange");
+            }
+
+            await FreshClone(repository, ct);
+        }
+
+        private async Task FreshClone(IRepositoryGit repository, CancellationToken ct = default)
+        {
+            await Task.Run(() =>
+            {
+                if (Directory.Exists(repository.LocalPath))
+                {
+                    var dirInfo = new DirectoryInfo(repository.LocalPath);
+                    foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                    {
+                        file.Attributes = FileAttributes.Normal;
+                        File.Delete(file.FullName);
+                    }
+                    Directory.Delete(repository.LocalPath, true);
+                }
+
+                Directory.CreateDirectory(repository.LocalPath);
+            }, ct);
+
+            await Clone(repository.Url, repository.LocalPath, ct);
         }
 
         public async Task Synchronize(string url, string localPath, CancellationToken ct = default)

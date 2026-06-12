@@ -101,7 +101,9 @@ namespace BIA.ToolKit.ViewModels
             await ExecuteWithBusyAsync(async (ct) =>
             {
                 BIATKSettings settings = settingsService.Load();
-                await GetReleasesData(settings, ct: ct);
+                // Synchronize repositories at startup (git pull/clone for git repos, live folder
+                // re-read otherwise) so the latest published versions show up without a manual sync.
+                await GetReleasesData(settings, syncBefore: true, ct: ct);
                 settingsService.NotifyInitialized();
 
                 updateService.SetAppVersion(applicationVersion);
@@ -148,7 +150,7 @@ namespace BIA.ToolKit.ViewModels
                         consoleWriter.AddMessageLine($"Releases data got successfully for repository {r.Name}", "green");
                         if (r.UseDownloadedReleases)
                         {
-                            consoleWriter.AddMessageLine($"WARNING: Releases data got from downloaded releases for repository {r.Name}", "orange");
+                            consoleWriter.AddMessageLine($"WARNING: source of repository {r.Name} could not be reached. Showing previously downloaded (possibly OUTDATED) versions — latest published versions may be missing until the source is reachable again.", "red");
                         }
                     }
                     catch (Exception ex)
