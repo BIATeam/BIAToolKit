@@ -14,20 +14,20 @@ namespace BIA.ToolKit.Dialogs
             InitializeComponent();
         }
 
-        internal void LoadMessages(List<ConsoleWriter.Message> messages)
+        internal void LoadMessages(List<ConsoleWriter.Message> messages, bool isDarkTheme = true)
         {
             ViewModel?.ShowDialog(messages);
-            RenderMessages(messages);
+            RenderMessages(messages, isDarkTheme);
         }
 
-        private void RenderMessages(List<ConsoleWriter.Message> messages)
+        private void RenderMessages(List<ConsoleWriter.Message> messages, bool isDarkTheme)
         {
             OutputDetailRichTextBox.Document.Blocks.Clear();
             if (messages == null) return;
 
             foreach (var msg in messages)
             {
-                ConsoleWriter.AddMsgLine(OutputDetailRichTextBox, msg.message, msg.color);
+                ConsoleWriter.AddMsgLine(OutputDetailRichTextBox, msg.message, msg.color, isDarkTheme: isDarkTheme);
             }
         }
     }

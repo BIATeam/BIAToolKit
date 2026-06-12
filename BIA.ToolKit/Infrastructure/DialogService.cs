@@ -29,7 +29,10 @@ namespace BIA.ToolKit.Infrastructure
                 .ToList();
 
             var dialog = new LogDetailUC();
-            dialog.LoadMessages(wpfMessages);
+            // Render the detail with the current theme; otherwise AddMsgLine defaults to the dark
+            // palette and white/default text becomes invisible on the light-theme card background.
+            bool isDarkTheme = (consoleWriter as ConsoleWriter)?.IsDarkTheme ?? true;
+            dialog.LoadMessages(wpfMessages, isDarkTheme);
 
             ShowDialogSync(dialog);
             return true;
