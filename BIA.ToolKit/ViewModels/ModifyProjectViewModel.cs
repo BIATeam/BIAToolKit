@@ -408,13 +408,14 @@
                         File.Delete(fileToSuppress);
                     }
 
+                    // Always overwrite ProjectGeneration with the target version's file: the
+                    // git diff/apply step rejects this metadata file whenever the existing one
+                    // was written by an older ToolKit (different JSON shape), which would leave
+                    // FrameworkVersion / CompanyFileVersion stuck on the origin version.
                     var fileToCheck = Path.Combine(rootBiaFolder, settingsService.ReadSetting("ProjectGeneration"));
-                    if (!File.Exists(fileToCheck))
-                    {
-                        MigratePreparePath(out _, out _, out _, out _, out var projectTargetPath, out _);
-                        var fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
-                        File.Copy(fileToCopy, fileToCheck);
-                    }
+                    MigratePreparePath(out _, out _, out _, out _, out var projectTargetPath, out _);
+                    var fileToCopy = Path.Combine(projectTargetPath, Constants.FolderBia, settingsService.ReadSetting("ProjectGeneration"));
+                    File.Copy(fileToCopy, fileToCheck, overwrite: true);
                 }, ct);
 
                 step.Status = MigrationStepStatus.Done;
