@@ -38,6 +38,14 @@ namespace BIA.ToolKit.Application.Services
             CancellationToken ct = default
             )
         {
+            // Fail fast on misconfiguration: an empty template Company/Project name makes the rename step
+            // crash with "The value cannot be an empty string. (Parameter 'oldValue')". Validate once, up
+            // front, so we surface a clear actionable message instead of retrying a doomed operation 3 times.
+            if (!ValidateTemplatePlaceholders(projectParameters))
+            {
+                return false;
+            }
+
             bool success;
             try
             {
@@ -683,6 +691,48 @@ namespace BIA.ToolKit.Application.Services
                 consoleWriter.AddMessageLine($"-> Delete {file}", "orange");
                 File.Delete(file);
             }
+        }
+
+        /// <summary>
+        /// Validates that the selected template repository exposes the Company/Project placeholder names
+        /// used by the rename step. When either is empty the rename would throw
+        /// "The value cannot be an empty string. (Parameter 'oldValue')"; here we emit a clear, actionable
+        /// message and let the caller abort gracefully instead.
+        /// </summary>
+        private bool ValidateTemplatePlaceholders(ProjectParameters projectParameters)
+        {
+            var templateRepository = projectParameters?.VersionAndOption?.WorkTemplate?.Repository;
+            if (templateRepository == null)
+            {
+                consoleWriter.AddMessageLine(
+                    "No template repository is configured. Open Settings > Template Repositories and select a valid template before creating a project.",
+                    "Red");
+                return false;
+            }
+
+            List<string> missing = [];
+            if (string.IsNullOrWhiteSpace(templateRepository.CompanyName))
+            {
+                missing.Add("Company Name");
+            }
+            if (string.IsNullOrWhiteSpace(templateRepository.ProjectName))
+            {
+                missing.Add("Project Name");
+            }
+
+            if (missing.Count > 0)
+            {
+                consoleWriter.AddMessageLine(
+                    $"Template repository '{templateRepository.Name}' is missing required value(s): {string.Join(" and ", missing)}.",
+                    "Red");
+                consoleWriter.AddMessageLine(
+                    $"Open Settings > Template Repositories, edit '{templateRepository.Name}', and fill in the {string.Join(" and ", missing)} field(s), then retry. " +
+                    "For the standard BIA template, use Company Name = 'TheBIADevCompany' and Project Name = 'BIATemplate'.",
+                    "Orange");
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>

@@ -151,12 +151,47 @@ namespace BIA.ToolKit.ViewModels
                     {
                         await gitService.Synchronize(repositoryGit, ct);
                     }
+                    else if (IsFolderRepository)
+                    {
+                        // Folder repos cache each version locally; drop that cache so the next
+                        // PrepareVersionFolder re-copies fresh content from the source, then
+                        // re-list the available versions.
+                        if (RefreshFolderCache())
+                        {
+                            await repository.FillReleasesAsync(ct);
+                            WeakReferenceMessenger.Default.Send(new RepositoryReleaseDataUpdatedMessage(this));
+                            RefreshVersionInfo();
+                            consoleWriter.AddMessageLine("Folder repository synchronized", "green");
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
                     consoleWriter.AddMessageLine($"Error : {ex.Message}", "red");
                 }
             }));
+        }
+
+        /// <summary>
+        /// For a Folder repository, clears the locally cached copy of each version so that the
+        /// next <c>PrepareVersionFolder</c> re-copies the (possibly updated) content from the
+        /// source. No-op for non-Folder repositories. Returns <c>false</c> when the source
+        /// folder is unreachable so callers can skip re-listing (and avoid wiping the cache
+        /// with no way to repopulate it).
+        /// </summary>
+        private bool RefreshFolderCache()
+        {
+            if (!IsFolderRepository)
+                return true;
+
+            if (!Directory.Exists(Model.LocalPath))
+            {
+                consoleWriter.AddMessageLine($"Source folder {Model.LocalPath} not found — cannot refresh cache", "red");
+                return false;
+            }
+
+            repository.CleanReleases();
+            return true;
         }
 
         [RelayCommand]
@@ -205,6 +240,7 @@ namespace BIA.ToolKit.ViewModels
                 try
                 {
                     consoleWriter.AddMessageLine("Getting releases data...", "pink");
+                    RefreshFolderCache();
                     await repository.FillReleasesAsync(ct);
                     WeakReferenceMessenger.Default.Send(new RepositoryReleaseDataUpdatedMessage(this));
                     consoleWriter.AddMessageLine("Releases data got successfully", "green");

@@ -24,6 +24,12 @@ namespace BIA.ToolKit.Helper
         List<Message> messages = [];
         readonly List<Message> displayedMessages = [];
 
+        // Guards the shared `messages` buffer: it is written from background threads
+        // (e.g. buffered git output during concurrent repository synchronization) and
+        // snapshot/reset from the UI thread. Without it the buffer races and the
+        // "OPEN LOG DETAIL" link ends up attached to an emptied list.
+        private readonly object messagesLock = new();
+
         // Step scoping — AsyncLocal so the value flows across await / Task.Run.
         private static readonly AsyncLocal<int?> currentStep = new();
 
@@ -50,6 +56,11 @@ namespace BIA.ToolKit.Helper
             public string color;
             public DateTime timestamp;
             public int? stepNumber;
+
+            // When set, this entry is not a text line but an "OPEN LOG DETAIL" link carrying the
+            // buffered messages it reveals. Kept in displayedMessages so ReRenderMessages (theme
+            // switch / step recolor) can rebuild the link instead of dropping it.
+            public List<Message> detailMessages;
         }
 
         public void AddMessageLine(string message, string color = null, bool refreshimediate = true)
@@ -58,23 +69,29 @@ namespace BIA.ToolKit.Helper
             int? step = currentStep.Value;
             if (!refreshimediate)
             {
-                messages.Add(new Message { message = message, color = color, timestamp = now, stepNumber = step });
+                lock (messagesLock)
+                {
+                    messages.Add(new Message { message = message, color = color, timestamp = now, stepNumber = step });
+                }
             }
             else
             {
-                if (messages.Count > 0)
+                // Atomically take the buffered messages and reset the shared buffer, so the
+                // detached snapshot stays stable even if background threads keep buffering.
+                List<Message> buffered = null;
+                lock (messagesLock)
                 {
-                    var run = new Run(@"[🔍 OPEN LOG DETAIL]")
+                    if (messages.Count > 0)
                     {
-                        Foreground = IsDarkTheme ? Brushes.YellowGreen : Brushes.DarkOliveGreen,
-                        Cursor = Cursors.Hand,
-                        TextDecorations = TextDecorations.Underline
-                    };
-                    run.MouseDown += new MouseButtonEventHandler(OpenDetail);
-                    run.DataContext = messages;
-                    AppendInline(OutputRichTextBox, run);
+                        buffered = messages;
+                        messages = [];
+                    }
+                }
 
-                    messages = [];
+                if (buffered != null)
+                {
+                    displayedMessages.Add(new Message { detailMessages = buffered, timestamp = now });
+                    AppendDetailLink(buffered);
                 }
                 AddMsgLine(OutputRichTextBox, message, color, refreshimediate, IsDarkTheme, now, step, /*stripeColor*/ null);
                 displayedMessages.Add(new Message { message = message, color = color, timestamp = now, stepNumber = step });
@@ -109,6 +126,19 @@ namespace BIA.ToolKit.Helper
             ReRenderMessages();
         }
 
+        private void AppendDetailLink(List<Message> detailMessages)
+        {
+            var run = new Run(@"[🔍 OPEN LOG DETAIL]")
+            {
+                Foreground = IsDarkTheme ? Brushes.YellowGreen : Brushes.DarkOliveGreen,
+                Cursor = Cursors.Hand,
+                TextDecorations = TextDecorations.Underline
+            };
+            run.MouseDown += new MouseButtonEventHandler(OpenDetail);
+            run.DataContext = detailMessages;
+            AppendInline(OutputRichTextBox, run);
+        }
+
         private void OpenDetail(object sender, MouseButtonEventArgs e)
         {
             var rawMessages = (List<Message>)((Run)sender).DataContext;
@@ -124,7 +154,7 @@ namespace BIA.ToolKit.Helper
 
         public void CopyToClipboard()
         {
-            Clipboard.SetText(string.Join(Environment.NewLine, displayedMessages.Select(m => $"[{m.timestamp:HH:mm:ss}]  {m.message}")));
+            Clipboard.SetText(string.Join(Environment.NewLine, displayedMessages.Where(m => m.detailMessages == null).Select(m => $"[{m.timestamp:HH:mm:ss}]  {m.message}")));
         }
 
         /// <summary>
@@ -137,6 +167,11 @@ namespace BIA.ToolKit.Helper
             OutputRichTextBox.Document.Blocks.Clear();
             foreach (var msg in displayedMessages)
             {
+                if (msg.detailMessages != null)
+                {
+                    AppendDetailLink(msg.detailMessages);
+                    continue;
+                }
                 string stripeColor = ResolveStripeColor(msg.stepNumber);
                 AddMsgLine(OutputRichTextBox, msg.message, msg.color, false, IsDarkTheme, msg.timestamp, msg.stepNumber, stripeColor);
             }
