@@ -8,20 +8,20 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:ProjectViewModel, IsDesignTimeCreatable=False}"
              d:Width="1280">
-    <Grid>
+    <Grid Grid.IsSharedSizeScope="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-
         <!-- Column 0: Root path + browse -->
         <Grid Grid.Column="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto" SharedSizeGroup="BrowseButtonColumn"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <TextBox x:Name="RootPathTextBox"
@@ -37,6 +37,65 @@
                     Click="BrowseRootFolder_Click">
                 <materialDesign:PackIcon Kind="FolderOpenOutline" Height="26" Width="26"/>
             </Button>
+
+            <!-- Coachmark: shown only while no project is selected. The zero-height Canvas
+                 anchors it right under the Parent Path + Browse row WITHOUT reserving layout
+                 space, so it floats over whatever sits below (overlay). The arrow sits in a
+                 column sharing its width with the Browse button's column (SharedSizeGroup),
+                 so it stays centered under Browse at any window size. IsHitTestVisible=False
+                 so it never steals clicks. -->
+            <Canvas x:Name="HintCanvas" Grid.Row="1" Grid.ColumnSpan="2"
+                    Height="0" IsHitTestVisible="False">
+                <Grid Canvas.Top="6" Width="{Binding ActualWidth, ElementName=HintCanvas}">
+                    <Grid.Style>
+                        <Style TargetType="Grid">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsProjectSelected}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Grid.Style>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="auto" SharedSizeGroup="BrowseButtonColumn"/>
+                    </Grid.ColumnDefinitions>
+                    <Path Grid.Row="0" Grid.Column="1"
+                          Data="M 0,8 L 8,0 L 16,8 Z"
+                          Fill="{DynamicResource MaterialDesign.Brush.Primary}"
+                          Width="16" Height="8" Margin="0,0,0,-1"
+                          HorizontalAlignment="Center" Panel.ZIndex="1"/>
+                    <Border Grid.Row="1" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Right" MaxWidth="440"
+                            CornerRadius="8" BorderThickness="1" Padding="12,10"
+                            Background="{DynamicResource MaterialDesign.Brush.Card.Background}"
+                            BorderBrush="{DynamicResource MaterialDesign.Brush.Primary}">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.22" Color="Black"/>
+                        </Border.Effect>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <materialDesign:PackIcon Grid.Column="0" Kind="HelpCircleOutline" Width="18" Height="18"
+                                                     VerticalAlignment="Top" Margin="0,1,10,0"
+                                                     Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Select a project to begin" FontWeight="SemiBold"/>
+                                <TextBlock Text="Browse to your projects parent folder, then pick a project from the Project Folder list."
+                                           Style="{StaticResource Text.Caption}"
+                                           TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Canvas>
         </Grid>
 
         <!-- Column 1: Project folder combo + refresh + refresh info -->
