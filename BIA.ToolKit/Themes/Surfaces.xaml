@@ -24,6 +24,21 @@
         <Setter Property="BorderThickness" Value="1"/>
     </Style>
 
+    <!-- Banner: persistent top strip (e.g. the shared project selector) that sits
+         above scrolling page content — a bottom border + downward drop shadow
+         reads as "floating above" rather than a boxed card. -->
+    <Style x:Key="Surface.Banner" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Card.Background}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesign.Brush.Card.Border}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding" Value="10"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Direction="270" Opacity="0.18" Color="Black"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Hint tooltip: rich, theme-coloured tooltip with a primary border so it
          stands out from neutral surface backgrounds. Used for the Generate
          button tooltips that explain blocking reasons. -->
