@@ -23,6 +23,10 @@ namespace BIA.ToolKit.Domain
     public sealed class RepositoryGit : Repository, IRepositoryGit
     {
         public override string LocalPath => UseLocalClonedFolder ? LocalClonedFolderPath : Path.Combine(AppSettings.AppFolderPath, Name, "Repo");
+
+        // When the user supplies their own local cloned folder, that folder belongs to the
+        // user (it is their working copy) — deleting the config must not delete its content.
+        protected override bool OwnsLocalPath => !UseLocalClonedFolder;
         public string Url { get; set; }
         public bool UseLocalClonedFolder { get; set; }
         public ReleaseType ReleaseType { get; set; }

@@ -159,7 +159,10 @@ namespace BIA.ToolKit.ViewModels
             if (result != null)
                 return result;
 
-            return WorkCompanyFiles.LastOrDefault();
+            // Fall back to the latest concrete version; never auto-select the special VX.Y.Z
+            // dev version unless it is the only company-files version available.
+            return WorkCompanyFiles.LastOrDefault(x => x.Version != "VX.Y.Z")
+                ?? WorkCompanyFiles.LastOrDefault();
         }
 
         public WorkRepository WorkCompanyFile
@@ -184,7 +187,11 @@ namespace BIA.ToolKit.ViewModels
         {
             try
             {
-                WorkCompanyFile.VersionFolderPath = await repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version, ct);
+                // The VX.Y.Z dev version resolves directly to the repository's local working
+                // copy (no download, no network), mirroring the template VX.Y.Z behaviour.
+                WorkCompanyFile.VersionFolderPath = WorkCompanyFile.Version == "VX.Y.Z"
+                    ? WorkCompanyFile.Repository.LocalPath
+                    : await repositoryService.PrepareVersionFolder(WorkCompanyFile.Repository, WorkCompanyFile.Version, ct);
                 string fileName = Path.Combine(WorkCompanyFile.VersionFolderPath, "biaCompanyFiles.json");
 
                 string jsonString = await Task.Run(() => File.ReadAllText(fileName), ct);
@@ -669,6 +676,18 @@ namespace BIA.ToolKit.ViewModels
                 {
                     AddTemplatesVersion(listCompanyFiles, repository);
                 }
+
+                // A company-files repository flagged "Use as version X.Y.Z" exposes its local
+                // working copy as an in-development VX.Y.Z version (developing new company files
+                // without waiting for a deployment). It is added independently of any network
+                // fetch, so it stays available even when the remote is unreachable.
+                var companyFileVersionXYZ = settingsService.Settings.CompanyFilesRepositories
+                    .FirstOrDefault(r => r is RepositoryGit repoGit && repoGit.IsVersionXYZ);
+                if (companyFileVersionXYZ is not null)
+                {
+                    listCompanyFiles.Add(new WorkRepository(companyFileVersionXYZ, "VX.Y.Z"));
+                }
+
                 WorkCompanyFiles = new ObservableCollection<WorkRepository>(listCompanyFiles);
                 if (WorkCompanyFiles.Count >= 1 && WorkTemplate is not null)
                 {

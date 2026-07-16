@@ -313,6 +313,10 @@
                                                         UseDefaultCommand="{Binding UseDefaultTemplatesRepositoryCommand}"/>
 
                                 <!-- 5. Company Files (optional) -->
+                                <CheckBox Margin="24,8,14,0"
+                                          IsChecked="{Binding Settings_UseCompanyFiles}"
+                                          Content="Use Company Files"
+                                          ToolTip="When enabled, company-specific files are applied on top of templates when creating or migrating projects. Required for the company-files version selectors to appear."/>
                                 <uc:RepositorySectionUC Icon="🏢"
                                                         Title="Company Files Repositories (optional)"
                                                         Subtitle="Company-specific overrides applied on top of templates when creating new projects. Leave empty for vanilla BIA projects."
