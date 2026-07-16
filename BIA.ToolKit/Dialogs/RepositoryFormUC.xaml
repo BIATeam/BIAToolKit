@@ -48,6 +48,9 @@
                     </Button>
                 </Grid>
                 <CheckBox Margin="{StaticResource FormFieldMargin}" IsChecked="{Binding IsVersionXYZ}" Content="Use as version X.Y.Z" Visibility="{Binding CanBeVersionXYZ, Converter={StaticResource BoolToVisConverter}}"/>
+                <TextBlock Style="{StaticResource FieldHelper}"
+                           Visibility="{Binding CanBeVersionXYZ, Converter={StaticResource BoolToVisConverter}}"
+                           Text="Exposes this repository's working copy as an in-development &quot;X.Y.Z&quot; version."/>
                 <ComboBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledComboBox}" materialDesign:HintAssist.Hint="Release Type" ItemsSource="{Binding ReleaseTypes}" SelectedItem="{Binding ReleaseType}"/>
                 <!-- Release type GIT -->
                 <TextBox Margin="{StaticResource FormFieldMargin}" Style="{StaticResource MaterialDesignFilledTextBox}" materialDesign:HintAssist.Hint="GIT Repository Name" Text="{Binding GitRepositoryName}" TextWrapping="Wrap" Visibility="{Binding IsReleaseTypeGit, Converter={StaticResource BoolToVisConverter}}"/>
