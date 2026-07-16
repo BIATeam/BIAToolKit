@@ -41,6 +41,7 @@ namespace BIA.ToolKit.ViewModels
                         gitService,
                         consoleWriter)
                     {
+                        Section = repository.Section,
                         IsVisibleCompanyName = repository.IsVisibleCompanyName,
                         IsVisibleProjectName = repository.IsVisibleProjectName
                     },
@@ -55,6 +56,7 @@ namespace BIA.ToolKit.ViewModels
                         gitService,
                         consoleWriter)
                     {
+                        Section = repository.Section,
                         IsVisibleCompanyName = repository.IsVisibleCompanyName,
                         IsVisibleProjectName = repository.IsVisibleProjectName
                     },

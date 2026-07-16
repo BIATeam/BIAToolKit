@@ -211,7 +211,7 @@ namespace BIA.ToolKit.ViewModels
         {
             waitAddTemplateRepository = true;
             waitAddCompanyFilesRepository = false;
-            WeakReferenceMessenger.Default.Send(new OpenRepositoryFormMessage(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, consoleWriter), RepositoryFormMode.Create));
+            WeakReferenceMessenger.Default.Send(new OpenRepositoryFormMessage(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, consoleWriter) { Section = RepositorySectionKind.Template }, RepositoryFormMode.Create));
         }
 
         [RelayCommand]
@@ -219,7 +219,7 @@ namespace BIA.ToolKit.ViewModels
         {
             waitAddCompanyFilesRepository = true;
             waitAddTemplateRepository = false;
-            WeakReferenceMessenger.Default.Send(new OpenRepositoryFormMessage(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, consoleWriter), RepositoryFormMode.Create));
+            WeakReferenceMessenger.Default.Send(new OpenRepositoryFormMessage(new RepositoryGitViewModel(RepositoryGit.CreateEmpty(), gitService, consoleWriter) { Section = RepositorySectionKind.CompanyFiles }, RepositoryFormMode.Create));
         }
 
         /// <summary>
@@ -239,6 +239,7 @@ namespace BIA.ToolKit.ViewModels
             settingsService.SetToolkitRepository(folder);
             ToolkitRepository = new RepositoryFolderViewModel(folder, gitService, consoleWriter)
             {
+                Section = RepositorySectionKind.Toolkit,
                 IsVisibleCompanyName = false,
                 IsVisibleProjectName = false,
             };
@@ -259,7 +260,7 @@ namespace BIA.ToolKit.ViewModels
                 releasesFolderRegexPattern: @"^V\d+\.\d+\.\d+(?:\.\d+)?$",
                 useRepository: true);
 
-            TemplateRepositories.Add(new RepositoryFolderViewModel(folder, gitService, consoleWriter));
+            TemplateRepositories.Add(new RepositoryFolderViewModel(folder, gitService, consoleWriter) { Section = RepositorySectionKind.Template });
             WeakReferenceMessenger.Default.Send(new RepositoriesUpdatedMessage());
         }
 
@@ -277,7 +278,7 @@ namespace BIA.ToolKit.ViewModels
                 releasesFolderRegexPattern: @"^V\d+\.\d+\.\d+(?:\.\d+)?$",
                 useRepository: true);
 
-            CompanyFilesRepositories.Add(new RepositoryGitViewModel(git, gitService, consoleWriter));
+            CompanyFilesRepositories.Add(new RepositoryGitViewModel(git, gitService, consoleWriter) { Section = RepositorySectionKind.CompanyFiles });
             WeakReferenceMessenger.Default.Send(new RepositoriesUpdatedMessage());
         }
 
@@ -291,13 +292,13 @@ namespace BIA.ToolKit.ViewModels
             {
                 if (repository is RepositoryGit repositoryGit)
                 {
-                    var viewModel = new RepositoryGitViewModel(repositoryGit, gitService, consoleWriter);
+                    var viewModel = new RepositoryGitViewModel(repositoryGit, gitService, consoleWriter) { Section = RepositorySectionKind.Template };
                     TemplateRepositories.Add(viewModel);
                 }
 
                 if (repository is RepositoryFolder repositoryFolder)
                 {
-                    TemplateRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, consoleWriter));
+                    TemplateRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, consoleWriter) { Section = RepositorySectionKind.Template });
                 }
             }
 
@@ -306,12 +307,12 @@ namespace BIA.ToolKit.ViewModels
             {
                 if (repository is RepositoryGit repositoryGit)
                 {
-                    CompanyFilesRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, consoleWriter));
+                    CompanyFilesRepositories.Add(new RepositoryGitViewModel(repositoryGit, gitService, consoleWriter) { Section = RepositorySectionKind.CompanyFiles });
                 }
 
                 if (repository is RepositoryFolder repositoryFolder)
                 {
-                    CompanyFilesRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, consoleWriter));
+                    CompanyFilesRepositories.Add(new RepositoryFolderViewModel(repositoryFolder, gitService, consoleWriter) { Section = RepositorySectionKind.CompanyFiles });
                 }
             }
 
@@ -321,6 +322,7 @@ namespace BIA.ToolKit.ViewModels
                 RepositoryFolder repositoryFolder => new RepositoryFolderViewModel(repositoryFolder, gitService, consoleWriter),
                 _ => throw new NotImplementedException()
             };
+            ToolkitRepository.Section = RepositorySectionKind.Toolkit;
             ToolkitRepository.IsVisibleCompanyName = false;
             ToolkitRepository.IsVisibleProjectName = false;
 

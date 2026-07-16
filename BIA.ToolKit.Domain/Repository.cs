@@ -44,11 +44,21 @@ namespace BIA.ToolKit.Domain
             releases.ForEach(r => r.Clean());
         }
 
+        /// <summary>
+        /// Whether the toolkit owns <see cref="LocalPath"/> and is therefore allowed to
+        /// delete it when the repository configuration is removed. Repositories that point
+        /// at a user-managed folder override this to return <c>false</c> so their content
+        /// is never wiped by the toolkit.
+        /// </summary>
+        protected virtual bool OwnsLocalPath => true;
+
         public void Clean()
         {
             CleanReleases();
 
-            if (RepositoryType == RepositoryType.Git && Directory.Exists(LocalPath))
+            // Only delete the local working copy when the toolkit owns it. A user-provided
+            // local cloned folder must never be wiped when its configuration is deleted.
+            if (RepositoryType == RepositoryType.Git && OwnsLocalPath && Directory.Exists(LocalPath))
             {
                 var dirInfo = new DirectoryInfo(LocalPath);
                 foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
