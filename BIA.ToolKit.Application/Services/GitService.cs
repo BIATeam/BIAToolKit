@@ -47,23 +47,43 @@ namespace BIA.ToolKit.Application.Services
 
         private async Task FreshClone(IRepositoryGit repository, CancellationToken ct = default)
         {
+            string finalPath = repository.LocalPath;
+            string tempPath = finalPath.TrimEnd('\\', '/') + ".tmpclone";
+
+            // Clone into a temporary sibling folder first, and only replace the existing
+            // clone once the new clone has actually succeeded. This prevents a network/auth
+            // failure (or a missing git CLI) from destroying a still-usable local clone.
+            outPut.AddMessageLine($"Clone {repository.Url} into {finalPath}...", "Pink");
+            await Task.Run(() => DeleteDirectoryIfExists(tempPath), ct);
+
+            if (await RunScript("git", ["clone", repository.Url, tempPath], ct: ct) != 0)
+            {
+                outPut.AddMessageLine($"Clone of {repository.Name} failed; keeping the existing local clone (if any).", "Orange");
+                await Task.Run(() => DeleteDirectoryIfExists(tempPath), ct);
+                return;
+            }
+
             await Task.Run(() =>
             {
-                if (Directory.Exists(repository.LocalPath))
-                {
-                    var dirInfo = new DirectoryInfo(repository.LocalPath);
-                    foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
-                    {
-                        file.Attributes = FileAttributes.Normal;
-                        File.Delete(file.FullName);
-                    }
-                    Directory.Delete(repository.LocalPath, true);
-                }
-
-                Directory.CreateDirectory(repository.LocalPath);
+                DeleteDirectoryIfExists(finalPath);
+                Directory.Move(tempPath, finalPath);
             }, ct);
+            outPut.AddMessageLine("Clone finished", "Green");
+        }
 
-            await Clone(repository.Url, repository.LocalPath, ct);
+        private static void DeleteDirectoryIfExists(string path)
+        {
+            if (!Directory.Exists(path))
+                return;
+
+            var dirInfo = new DirectoryInfo(path);
+            foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+            {
+                file.Attributes = FileAttributes.Normal;
+                File.Delete(file.FullName);
+            }
+
+            Directory.Delete(path, true);
         }
 
         public async Task Synchronize(string url, string localPath, CancellationToken ct = default)
