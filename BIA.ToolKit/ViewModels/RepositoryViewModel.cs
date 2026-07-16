@@ -16,6 +16,18 @@ namespace BIA.ToolKit.ViewModels
     using CommunityToolkit.Mvvm.Input;
     using CommunityToolkit.Mvvm.Messaging;
 
+    /// <summary>
+    /// Which configuration section a repository belongs to. Used to scope the
+    /// "Use as version X.Y.Z" mutual exclusion so that Templates and Company Files
+    /// can each have their own independent VX.Y.Z dev source.
+    /// </summary>
+    public enum RepositorySectionKind
+    {
+        Toolkit,
+        Template,
+        CompanyFiles
+    }
+
     public abstract partial class RepositoryViewModel : ObservableObject,
         IRecipient<RepositoryVersionXYZChangedMessage>
     {
@@ -45,9 +57,20 @@ namespace BIA.ToolKit.ViewModels
         [ObservableProperty]
         private string lastSyncError;
 
+        /// <summary>
+        /// The configuration section this repository belongs to. Set by the owner when the
+        /// view model is created. Defaults to <see cref="RepositorySectionKind.Template"/>.
+        /// </summary>
+        public RepositorySectionKind Section { get; set; } = RepositorySectionKind.Template;
+
         public void Receive(RepositoryVersionXYZChangedMessage message)
         {
             if (message.Repository == this)
+                return;
+
+            // Only one VX.Y.Z per section: a Company Files VX.Y.Z must not clear a Templates
+            // VX.Y.Z (and vice versa), so they can be developed locally at the same time.
+            if (message.Repository.Section != Section)
                 return;
 
             IsVersionXYZ = false;
